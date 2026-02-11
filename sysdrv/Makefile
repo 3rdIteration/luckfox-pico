@@ -281,7 +281,9 @@ BUSYBOX_DIR := $(SYSDRV_DIR)/source/busybox
 SYSDRV_BUSYBOX_OBJS_OUTPUT_DIR ?= $(BUSYBOX_DIR)/objs_$(BUSYBOX_CFG)
 
 BUILDROOT_CFG ?= config_normal
-BUILDROOT_VER ?= buildroot-2023.02.6
+BUILDROOT_VER ?= buildroot-2024.11.x
+BUILDROOT_BRANCH ?= 2024.11.x
+BUILDROOT_ARCHIVE_URL ?= https://github.com/buildroot/buildroot/archive/refs/heads/$(BUILDROOT_BRANCH).tar.gz
 BUILDROOT_DIR := $(SYSDRV_DIR)/source/buildroot
 
 CUSTOM_VER ?= custom
@@ -597,6 +599,7 @@ buildroot_create:
 	@echo -e "$(C_GREEN) ==sysdrv== buildroot create   $(C_NORMAL)"
 	rm $(BUILDROOT_DIR)/$(BUILDROOT_VER) -rf ;\
 	mkdir -p $(BUILDROOT_DIR)
+	test -f $(SYSDRV_DIR)/tools/board/buildroot/$(BUILDROOT_VER).tar.gz || curl -L $(BUILDROOT_ARCHIVE_URL) -o $(SYSDRV_DIR)/tools/board/buildroot/$(BUILDROOT_VER).tar.gz
 	tar xzf $(SYSDRV_DIR)/tools/board/buildroot/$(BUILDROOT_VER).tar.gz -C $(BUILDROOT_DIR)
 	cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/
 	cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_w_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/
@@ -610,19 +613,22 @@ buildroot_create:
 
 buildroot: prepare
 	@echo -e "$(C_GREEN) ==sysdrv== build buildroot   $(C_NORMAL)"
-	test -d $(BUILDROOT_DIR)/$(BUILDROOT_VER) || (\
-		mkdir -p $(BUILDROOT_DIR) ;\
-		tar xzf $(SYSDRV_DIR)/tools/board/buildroot/$(BUILDROOT_VER).tar.gz -C $(BUILDROOT_DIR) ;\
-		cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/ ;\
-		cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_w_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/ ;\
-		cp $(SYSDRV_DIR)/tools/board/buildroot/busybox.config $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
-		cp ${HCITOOL_TOOL_PATH}/0001-Fixed-header-file-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/ ;\
-		cp ${HCITOOL_TOOL_PATH}/0002-Fix-build-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/ ;\
-		cp ${HCITOOL_TOOL_PATH}/0003-fix-compat-wordexp.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/ ;\
-		cp ${MPV_PATCH_PATH}/0002-change-j1.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/ ;\
-		cp ${BUSYBOX_PATCH_PATH}/0009-busybox-support-chinese-display-in-terminal.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
-		cp ${BUSYBOX_PATCH_PATH}/0010-halt-Support-rebooting-with-arg.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
-	);
+	@if [ ! -d $(BUILDROOT_DIR)/$(BUILDROOT_VER) ]; then \
+		mkdir -p $(BUILDROOT_DIR); \
+		if [ ! -f $(SYSDRV_DIR)/tools/board/buildroot/$(BUILDROOT_VER).tar.gz ]; then \
+			curl -L $(BUILDROOT_ARCHIVE_URL) -o $(SYSDRV_DIR)/tools/board/buildroot/$(BUILDROOT_VER).tar.gz; \
+		fi; \
+		tar xzf $(SYSDRV_DIR)/tools/board/buildroot/$(BUILDROOT_VER).tar.gz -C $(BUILDROOT_DIR); \
+		cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/; \
+		cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_w_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/; \
+		cp $(SYSDRV_DIR)/tools/board/buildroot/busybox.config $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/; \
+		cp ${HCITOOL_TOOL_PATH}/0001-Fixed-header-file-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/; \
+		cp ${HCITOOL_TOOL_PATH}/0002-Fix-build-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/; \
+		cp ${HCITOOL_TOOL_PATH}/0003-fix-compat-wordexp.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/; \
+		cp ${MPV_PATCH_PATH}/0002-change-j1.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/; \
+		cp ${BUSYBOX_PATCH_PATH}/0009-busybox-support-chinese-display-in-terminal.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/; \
+		cp ${BUSYBOX_PATCH_PATH}/0010-halt-Support-rebooting-with-arg.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/; \
+	fi
 
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) $(BUILDROOT_DEFCONFIG) -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
 	$(SYSDRV_DIR)/tools/board/mirror_select/buildroot_mirror_select.sh $(BUILDROOT_DIR)/$(BUILDROOT_VER)/.config

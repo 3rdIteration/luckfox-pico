@@ -19,6 +19,10 @@ jobs:
   test-glibc-config:
     name: Test glibc Configuration
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    env:
+      EXPECTED_TARGET: arm-buildroot-linux-gnueabihf
     strategy:
       matrix:
         config:
@@ -104,10 +108,10 @@ jobs:
           
           # Check target triplet
           TARGET_NAME=$(make -s printvars VARS=GNU_TARGET_NAME 2>/dev/null | cut -d'=' -f2)
-          if [ "$TARGET_NAME" = "arm-buildroot-linux-gnueabihf" ]; then
+          if [ "$TARGET_NAME" = "$EXPECTED_TARGET" ]; then
             echo "✓ Target triplet is correct: $TARGET_NAME"
           else
-            echo "✗ Target triplet is incorrect: $TARGET_NAME (expected: arm-buildroot-linux-gnueabihf)"
+            echo "✗ Target triplet is incorrect: $TARGET_NAME (expected: $EXPECTED_TARGET)"
             exit 1
           fi
           
@@ -118,8 +122,11 @@ jobs:
           echo "Architecture: ARMv7-A (Cortex-A7)"
           echo "ABI: EABIHF (hard-float)"
           echo "FPU: $(grep '^BR2_ARM_FPU_VFPV4' .config | cut -d'=' -f1 | sed 's/BR2_ARM_FPU_//')"
-          echo "GCC: $(grep '^BR2_GCC_VERSION=' .config | cut -d'"' -f2)"
-          echo "glibc: $(grep 'GLIBC_VERSION' package/glibc/glibc.mk | head -1 | awk '{print $3}' | cut -d'-' -f1)"
+          GCC_VER=$(grep '^BR2_GCC_VERSION=' .config | cut -d'"' -f2)
+          echo "GCC: $GCC_VER"
+          # Get glibc version from buildroot variables
+          GLIBC_VER=$(make -s printvars VARS=GLIBC_VERSION 2>/dev/null | cut -d'=' -f2 | cut -d'-' -f1)
+          echo "glibc: $GLIBC_VER"
           echo ""
 
       - name: Test toolchain build (limited)
@@ -139,20 +146,19 @@ jobs:
             echo "✓ Toolchain with glibc built successfully"
             
             # Verify glibc was actually built
-            if [ -f output/host/arm-buildroot-linux-gnueabihf/sysroot/lib/libc.so.6 ]; then
+            LIBC_PATH="output/host/$EXPECTED_TARGET/sysroot/lib/libc.so.6"
+            if [ -f "$LIBC_PATH" ]; then
               echo "✓ glibc library found in toolchain"
               
-              # Check glibc version
-              GCC_VERSION=$(output/host/bin/arm-buildroot-linux-gnueabihf-gcc --version 2>&1 | head -1)
+              # Check toolchain version
+              GCC_VERSION=$(output/host/bin/$EXPECTED_TARGET-gcc --version 2>&1 | head -1)
               echo "Toolchain GCC: $GCC_VERSION"
               
-              # Try to get glibc version from the library
-              if [ -f output/host/arm-buildroot-linux-gnueabihf/sysroot/lib/libc.so.6 ]; then
-                echo "glibc version info:"
-                strings output/host/arm-buildroot-linux-gnueabihf/sysroot/lib/libc.so.6 | grep -E "GNU C Library|release version" | head -5 || true
-              fi
+              # Get glibc version from the library
+              echo "glibc version info:"
+              strings "$LIBC_PATH" | grep -E "GNU C Library|release version" | head -5 || true
             else
-              echo "✗ glibc library NOT found in toolchain"
+              echo "✗ glibc library NOT found at $LIBC_PATH"
               exit 1
             fi
           else
@@ -176,7 +182,7 @@ jobs:
           echo "  - VFPv4-D16 + NEON"
           echo "  - C++ support enabled"
           echo "  - GCC 13.x toolchain"
-          echo "  - Target: arm-buildroot-linux-gnueabihf"
+          echo "  - Target: $EXPECTED_TARGET"
           echo ""
 
       - name: Upload build logs

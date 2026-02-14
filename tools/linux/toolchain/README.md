@@ -6,14 +6,16 @@ This directory contains cross-compilation toolchains for the Luckfox Pico SDK.
 
 ### GCC 8.3.0 (Default - Included)
 - **Directory**: `arm-rockchip830-linux-uclibcgnueabihf/`
+- **C Library**: uclibc (lightweight, embedded-optimized)
 - **Status**: Pre-installed, fully tested
 - **Use case**: Default for all users, best compatibility
 - **Size**: ~233MB
 
 ### GCC 11.2 (Optional - Officially Supported)
 - **Directory**: `gcc-arm-11.2-2022.02-x86_64-arm-none-linux-gnueabihf/`
+- **C Library**: glibc (full GNU C library)
 - **Status**: Officially supported per [Luckfox wiki](https://wiki.luckfox.com/Luckfox-Pico-Plus-Mini/Cross-Compile/)
-- **Use case**: Advanced users needing C++17/C++20, modern security features
+- **Use case**: Advanced users needing C++17/C++20, modern security features, or better POSIX compliance
 - **Size**: ~400MB (after extraction)
 
 ## Quick Start
@@ -109,12 +111,15 @@ See `docs/GCC_VERSION_CONFIGURATION.md` for complete instructions.
 | Feature | GCC 8.3.0 | GCC 11.2 |
 |---------|-----------|----------|
 | **Included** | ✅ Yes | ❌ No (requires download) |
+| **C Library** | uclibc | glibc |
 | **C++ Standard** | C++14 | C++20 |
 | **Size** | ~233MB | ~400MB |
 | **Support** | Default/Tested | Official/Advanced |
 | **Security** | Good | Better |
 | **Compatibility** | Excellent | Good (may need fixes) |
 | **Build Time** | Faster | ~10-20% slower |
+| **Binary Size** | Smaller (uclibc) | Larger (glibc) |
+| **POSIX Compliance** | Good | Excellent |
 
 ## Troubleshooting
 

@@ -163,7 +163,7 @@ jobs:
           retention-days: 1
 
   test-build-gcc11:
-    name: Test Build with GCC 11.2
+    name: Test Build with GCC 11.2 (glibc)
     runs-on: ubuntu-22.04
     needs: test-scripts
     if: |
@@ -179,16 +179,25 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git ssh make gcc gcc-multilib g++-multilib module-assistant expect g++ gawk texinfo libssl-dev bison flex fakeroot cmake unzip gperf autoconf device-tree-compiler libncurses5-dev pkg-config bc python-is-python3 passwd openssl openssh-server openssh-client vim file cpio rsync
 
-      - name: Install and switch to GCC 11.2
+      - name: Install and switch to GCC 11.2 (glibc)
         run: |
           cd tools/linux/toolchain
           chmod +x install_gcc_11.2.sh switch_gcc_version.sh
 
-          echo "=== Installing GCC 11.2 ==="
+          echo "=== Installing GCC 11.2 (glibc toolchain) ==="
           ./install_gcc_11.2.sh
 
           echo "=== Switching to GCC 11.2 ==="
           ./switch_gcc_version.sh 11
+
+          echo ""
+          echo "=== Verifying C library type ==="
+          # The arm-none-linux-gnueabihf toolchain uses glibc
+          GCC_PATH="./gcc-arm-11.2-2022.02-x86_64-arm-none-linux-gnueabihf"
+          if [ -d "$GCC_PATH" ]; then
+            echo "Toolchain uses glibc (gnueabihf = GNU EABI hard-float with glibc)"
+            ls -la "$GCC_PATH/arm-none-linux-gnueabihf/libc/lib/" | grep -E "libc\.so|ld-linux" || true
+          fi
 
       - name: Configure build
         run: |
@@ -209,9 +218,9 @@ jobs:
           echo "=== Verifying GCC 11.2 is active ==="
           grep "BR2_TOOLCHAIN_EXTERNAL_GCC" sysdrv/tools/board/buildroot/luckfox_pico_defconfig | grep -v "^#"
 
-      - name: Build with GCC 11.2
+      - name: Build with GCC 11.2 (glibc)
         run: |
-          echo "=== Building with GCC 11.2 ==="
+          echo "=== Building with GCC 11.2 (glibc) ==="
           timeout 60m ./build.sh all || {
             echo "Build failed or timed out"
             exit 1
@@ -256,7 +265,7 @@ jobs:
           echo "- **Scripts Test**: ${{ needs.test-scripts.result }}" >> $GITHUB_STEP_SUMMARY
 
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.test_level }}" = "full_build" ]; then
-            echo "- **Full Build Test**: ${{ needs.test-build-gcc11.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Full Build Test (GCC 11.2 with glibc)**: ${{ needs.test-build-gcc11.result }}" >> $GITHUB_STEP_SUMMARY
           else
             echo "- **Full Build Test**: Skipped" >> $GITHUB_STEP_SUMMARY
           fi
@@ -271,5 +280,11 @@ jobs:
           echo "- ✓ Compiler functionality" >> $GITHUB_STEP_SUMMARY
 
           if [ "${{ needs.test-build-gcc11.result }}" = "success" ]; then
-            echo "- ✓ Full SDK build with GCC 11.2" >> $GITHUB_STEP_SUMMARY
+            echo "- ✓ Full SDK build with GCC 11.2 (glibc)" >> $GITHUB_STEP_SUMMARY
           fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## C Library Information" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **GCC 8.3.0 (default)**: Uses uclibc (arm-rockchip830-linux-uclibcgnueabihf)" >> $GITHUB_STEP_SUMMARY
+          echo "- **GCC 11.2**: Uses glibc (arm-none-linux-gnueabihf)" >> $GITHUB_STEP_SUMMARY

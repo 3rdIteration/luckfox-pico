@@ -15,18 +15,33 @@ According to Luckfox official documentation:
 ## Current Default Configuration
 
 - **Included Toolchain**: GCC 8.3.0 (arm-rockchip830-linux-uclibcgnueabihf)
+- **C Library**: uclibc (lightweight, embedded-focused)
 - **Default Configuration**: `BR2_TOOLCHAIN_EXTERNAL_GCC_8=y`
 - **Officially Supported**: Up to GCC 11.2 ([Luckfox wiki reference](https://wiki.luckfox.com/Luckfox-Pico-Plus-Mini/Cross-Compile/))
 - **Toolchain Path**: `tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf`
 
 ## Supported GCC Versions
 
-| GCC Version | Support Level | Notes |
-|------------|---------------|-------|
-| **GCC 8.3.0** | ✅ Default/Included | Pre-installed, fully tested |
-| **GCC 11.2** | ✅ **Officially Supported** | Requires external toolchain ([wiki](https://wiki.luckfox.com/Luckfox-Pico-Plus-Mini/Cross-Compile/)) |
-| GCC 9.x, 10.x | ⚠️ Community | Should work, limited testing |
-| GCC 12-14 | ⚠️ Experimental | May work, requires extensive testing |
+| GCC Version | Support Level | C Library | Notes |
+|------------|---------------|-----------|-------|
+| **GCC 8.3.0** | ✅ Default/Included | uclibc | Pre-installed, fully tested |
+| **GCC 11.2** | ✅ **Officially Supported** | **glibc** | Requires external toolchain ([wiki](https://wiki.luckfox.com/Luckfox-Pico-Plus-Mini/Cross-Compile/)) |
+| GCC 9.x, 10.x | ⚠️ Community | varies | Should work, limited testing |
+| GCC 12-14 | ⚠️ Experimental | varies | May work, requires extensive testing |
+
+### C Library Differences
+
+**uclibc (default with GCC 8.3.0)**:
+- Smaller binary size
+- Lower memory footprint
+- Optimized for embedded systems
+- Good for resource-constrained devices
+
+**glibc (with GCC 11.2)**:
+- Full GNU C library implementation
+- Better POSIX compliance
+- More feature-complete
+- Larger binaries but better compatibility with standard Linux applications
 
 ## Advantages of Higher GCC Versions
 

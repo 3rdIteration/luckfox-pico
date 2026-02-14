@@ -1,0 +1,85 @@
+name: Build Luckfox Pico
+
+on:
+  workflow_dispatch:
+    inputs:
+      hardware_type:
+        description: 'Hardware Type'
+        required: true
+        type: choice
+        options:
+          - RV1103_Luckfox_Pico
+          - RV1103_Luckfox_Pico_Mini
+          - RV1103_Luckfox_Pico_Plus
+          - RV1103_Luckfox_Pico_WebBee
+          - RV1106_Luckfox_Pico_Pro_Max
+          - RV1106_Luckfox_Pico_Ultra
+          - RV1106_Luckfox_Pico_Ultra_W
+          - RV1106_Luckfox_Pico_Pi
+          - RV1106_Luckfox_Pico_Pi_W
+          - RV1106_Luckfox_Pico_86Panel
+          - RV1106_Luckfox_Pico_86Panel_W
+          - RV1106_Luckfox_Pico_Zero
+        default: 'RV1103_Luckfox_Pico'
+      boot_medium:
+        description: 'Boot Medium'
+        required: true
+        type: choice
+        options:
+          - SD_CARD
+          - SPI_NAND
+          - EMMC
+        default: 'SD_CARD'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git ssh make gcc gcc-multilib g++-multilib module-assistant expect g++ gawk texinfo libssl-dev bison flex fakeroot cmake unzip gperf autoconf device-tree-compiler libncurses5-dev pkg-config bc python-is-python3 passwd openssl openssh-server openssh-client vim file cpio rsync
+    
+    - name: Setup toolchain
+      run: |
+        cd tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/
+        source env_install_toolchain.sh
+        echo "PATH=$PATH" >> $GITHUB_ENV
+    
+    - name: Configure build
+      run: |
+        # Map hardware and boot medium to board config
+        HARDWARE="${{ inputs.hardware_type }}"
+        BOOT_MEDIUM="${{ inputs.boot_medium }}"
+        
+        # Determine the board config file
+        BOARD_CONFIG="project/cfg/BoardConfig_IPC/BoardConfig-${BOOT_MEDIUM}-Buildroot-${HARDWARE}-IPC.mk"
+        
+        if [ ! -f "$BOARD_CONFIG" ]; then
+          echo "Error: Board config file not found: $BOARD_CONFIG"
+          echo "Available configs:"
+          ls -1 project/cfg/BoardConfig_IPC/
+          exit 1
+        fi
+        
+        echo "Using board config: $BOARD_CONFIG"
+        
+        # Create symbolic link to board config at root level
+        ln -rfs "$BOARD_CONFIG" .BoardConfig.mk
+    
+    - name: Build
+      run: |
+        ./build.sh all
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: luckfox-pico-${{ inputs.hardware_type }}-${{ inputs.boot_medium }}
+        path: |
+          output/image/*
+        retention-days: 7

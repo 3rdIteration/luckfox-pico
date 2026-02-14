@@ -164,8 +164,6 @@ Edit `sysdrv/tools/board/buildroot/luckfox_pico_defconfig` (or `luckfox_pico_w_d
 
 ### General Instructions for Other GCC Versions
 
-## How to Enable Higher GCC Versions
-
 ### Step 1: Obtain a Compatible Toolchain
 
 **Option A: Download Pre-built Toolchain**

@@ -37,6 +37,20 @@ source env_install_toolchain.sh
     ```
     git clone <https://gitee.com/LuckfoxTECH/luckfox-pico.git>
     ```
+### GitHub Actions Build (Optional)
+* You can use GitHub Actions to build the SDK automatically without setting up a local environment.
+* Navigate to the "Actions" tab in your GitHub repository
+* Select the "Build Luckfox Pico" workflow
+* Click "Run workflow" and select:
+  - **Hardware Type**: Choose your Luckfox Pico hardware model (e.g., RV1103_Luckfox_Pico, RV1106_Luckfox_Pico_Ultra, etc.)
+  - **Boot Medium**: Choose the boot medium (SD_CARD, SPI_NAND, or EMMC)
+* The workflow will:
+  1. Install all required dependencies
+  2. Set up the cross-compilation toolchain
+  3. Configure the build for your selected hardware and boot medium
+  4. Build the complete SDK
+  5. Upload the generated images as artifacts
+* Note: Not all hardware/boot medium combinations are supported. The workflow will validate your selection and provide available options if the combination is invalid.
 ### Instructions for build.sh
 * The build.sh script is used to automate the compilation process. 
 * Most of the compilation operations can be completed automatically through build.sh.

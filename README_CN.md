@@ -27,6 +27,20 @@ sudo apt-get install repo git ssh make gcc gcc-multilib g++-multilib module-assi
     ```
     git clone https://gitee.com/LuckfoxTECH/luckfox-pico.git
     ```
+### GitHub Actions 构建（可选）
+* 您可以使用 GitHub Actions 自动构建 SDK，无需设置本地环境。
+* 导航到 GitHub 仓库的 "Actions" 选项卡
+* 选择 "Build Luckfox Pico" 工作流
+* 点击 "Run workflow" 并选择：
+  - **Hardware Type（硬件类型）**：选择您的 Luckfox Pico 硬件型号（例如 RV1103_Luckfox_Pico、RV1106_Luckfox_Pico_Ultra 等）
+  - **Boot Medium（启动介质）**：选择启动介质（SD_CARD、SPI_NAND 或 EMMC）
+* 工作流将：
+  1. 安装所有必需的依赖项
+  2. 设置交叉编译工具链
+  3. 为您选择的硬件和启动介质配置构建
+  4. 构建完整的 SDK
+  5. 将生成的镜像作为构建产物上传
+* 注意：并非所有硬件/启动介质组合都受支持。工作流将验证您的选择，如果组合无效，将提供可用选项。
 ### 环境变量
 * 需要将交叉编译工具链设置
     ```

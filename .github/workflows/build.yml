@@ -30,6 +30,9 @@ on:
           - SPI_NAND
           - EMMC
         default: 'SD_CARD'
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
@@ -49,8 +52,16 @@ jobs:
       - name: Configure build
         run: |
           # Map hardware and boot medium to board config
-          HARDWARE="${{ inputs.hardware_type }}"
-          BOOT_MEDIUM="${{ inputs.boot_medium }}"
+          # For PR builds, use default values; for manual builds, use inputs
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            HARDWARE="RV1103_Luckfox_Pico_Mini"
+            BOOT_MEDIUM="SPI_NAND"
+            echo "PR build detected - using default: $HARDWARE with $BOOT_MEDIUM"
+          else
+            HARDWARE="${{ inputs.hardware_type }}"
+            BOOT_MEDIUM="${{ inputs.boot_medium }}"
+            echo "Manual build - using: $HARDWARE with $BOOT_MEDIUM"
+          fi
 
           # Determine the board config file
           BOARD_CONFIG="project/cfg/BoardConfig_IPC/BoardConfig-${BOOT_MEDIUM}-Buildroot-${HARDWARE}-IPC.mk"
@@ -75,7 +86,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: luckfox-pico-${{ inputs.hardware_type }}-${{ inputs.boot_medium }}
+          name: luckfox-pico-${{ github.event_name == 'pull_request' && 'RV1103_Luckfox_Pico_Mini-SPI_NAND' || format('{0}-{1}', inputs.hardware_type, inputs.boot_medium) }}
           path: |
             output/image/*
           retention-days: 7

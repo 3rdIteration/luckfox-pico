@@ -24,7 +24,7 @@ According to Luckfox official documentation:
 | GCC Version | Support Level | Notes |
 |------------|---------------|-------|
 | **GCC 8.3.0** | ✅ Default/Included | Pre-installed, fully tested |
-| **GCC 11.2** | ✅ **Officially Supported** | Requires external toolchain ([wiki](https://wiki.luckfox.com)) |
+| **GCC 11.2** | ✅ **Officially Supported** | Requires external toolchain ([wiki](https://wiki.luckfox.com/Luckfox-Pico-Plus-Mini/Cross-Compile/)) |
 | GCC 9.x, 10.x | ⚠️ Community | Should work, limited testing |
 | GCC 12-14 | ⚠️ Experimental | May work, requires extensive testing |
 

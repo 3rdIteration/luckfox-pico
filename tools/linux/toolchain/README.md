@@ -12,7 +12,7 @@ This directory contains cross-compilation toolchains for the Luckfox Pico SDK.
 
 ### GCC 11.2 (Optional - Officially Supported)
 - **Directory**: `gcc-arm-11.2-2022.02-x86_64-arm-none-linux-gnueabihf/`
-- **Status**: Officially supported per [Luckfox wiki](https://wiki.luckfox.com)
+- **Status**: Officially supported per [Luckfox wiki](https://wiki.luckfox.com/Luckfox-Pico-Plus-Mini/Cross-Compile/)
 - **Use case**: Advanced users needing C++17/C++20, modern security features
 - **Size**: ~400MB (after extraction)
 

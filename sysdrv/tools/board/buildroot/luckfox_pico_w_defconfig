@@ -5,7 +5,7 @@ BR2_TOOLCHAIN_EXTERNAL_CUSTOM=y
 BR2_TOOLCHAIN_EXTERNAL_PATH="../../../../tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf"
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="arm-rockchip830-linux-uclibcgnueabihf"
 # GCC version: Default is 8.3.0 to match the included toolchain (arm-rockchip830)
-# The SDK supports up to GCC 11.2 (see https://wiki.luckfox.com)
+# The SDK supports up to GCC 11.2 (see https://wiki.luckfox.com/Luckfox-Pico-Plus-Mini/Cross-Compile/)
 # To use GCC 11 or other versions (9, 10, 11, 12, 13, or 14 with Buildroot 2024.11.4):
 # 1. Provide a compatible external toolchain (e.g., gcc-arm-11.2 for ARM Cortex-A7)
 # 2. Update BR2_TOOLCHAIN_EXTERNAL_PATH to point to your toolchain

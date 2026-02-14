@@ -5,7 +5,7 @@
 * It provides a customized SDK specifically for Luckfox Pico series development boards 
 * Aimed at providing developers with a better programming experience
 ## SDK Updatelog
-+ Current Version: V1.5
++ Current Version: V1.5 (Unofficial)
 1. Updated Buildroot to version 2024.11.4 (from 2023.02.6) for improved compatibility and security.
 2. Added automated GitHub Actions build for RV1103_Luckfox_Pico_Mini with SPI_NAND on pull requests to main branch.
 3. Renumbered custom busybox patches to avoid conflicts with upstream buildroot patches.

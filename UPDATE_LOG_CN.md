@@ -1,5 +1,5 @@
 # 更新日志
-## V1.5 更新日志
+## V1.5 更新日志（非官方）
 1. 将Buildroot从2023.02.6升级到2024.11.4版本，提高兼容性和安全性
 2. 添加GitHub Actions自动构建支持，当提交PR到main分支时自动构建RV1103_Luckfox_Pico_Mini的SPI_NAND版本
 3. 重新编号自定义busybox补丁，避免与上游buildroot补丁冲突

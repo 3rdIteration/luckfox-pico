@@ -4,11 +4,12 @@ BR2_TOOLCHAIN_EXTERNAL=y
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM=y
 BR2_TOOLCHAIN_EXTERNAL_PATH="../../../../tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf"
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="arm-rockchip830-linux-uclibcgnueabihf"
-# GCC version: Default is 8.x to match the included toolchain (arm-rockchip830)
-# To use a different GCC version (9, 10, 11, 12, 13, or 14 with Buildroot 2024.11.4), you must:
-# 1. Change this line to the desired version (e.g., BR2_TOOLCHAIN_EXTERNAL_GCC_11=y)
-# 2. Update BR2_TOOLCHAIN_EXTERNAL_PATH to point to a matching GCC toolchain
-# 3. Be aware that newer GCC versions may have stricter warnings/errors
+# GCC version: Default is 8.3.0 to match the included toolchain (arm-rockchip830)
+# The SDK supports up to GCC 11.2 (see https://wiki.luckfox.com)
+# To use GCC 11 or other versions (9, 10, 11, 12, 13, or 14 with Buildroot 2024.11.4):
+# 1. Provide a compatible external toolchain (e.g., gcc-arm-11.2 for ARM Cortex-A7)
+# 2. Update BR2_TOOLCHAIN_EXTERNAL_PATH to point to your toolchain
+# 3. Change this line to match your toolchain (e.g., BR2_TOOLCHAIN_EXTERNAL_GCC_11=y)
 # See docs/GCC_VERSION_CONFIGURATION.md for detailed instructions and tradeoffs
 BR2_TOOLCHAIN_EXTERNAL_GCC_8=y
 BR2_TOOLCHAIN_EXTERNAL_HEADERS_5_10=y

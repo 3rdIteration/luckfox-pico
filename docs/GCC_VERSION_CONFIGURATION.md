@@ -2,13 +2,31 @@
 
 ## Overview
 
-The Luckfox Pico SDK uses GCC 8.3.0 by default, which matches the included pre-built toolchain. However, Buildroot 2024.11.4 supports GCC versions up to 14.x, making it **possible** to use newer GCC versions if you provide a compatible external toolchain.
+The Luckfox Pico SDK uses GCC 8.3.0 by default, which matches the included pre-built toolchain. However, **the SDK officially supports up to GCC 11.2** (as documented on the [Luckfox wiki](https://wiki.luckfox.com/Luckfox-Pico-Plus-Mini/Cross-Compile/)), and Buildroot 2024.11.4 technically supports GCC versions up to 14.x, making it possible to use these newer GCC versions if you provide a compatible external toolchain.
+
+## Official Support Statement
+
+According to Luckfox official documentation:
+- **Supported GCC versions**: Up to GCC 11.2
+- **Default/Included**: GCC 8.3.0 (arm-rockchip830-linux-uclibcgnueabihf)
+- **Recommended for most users**: GCC 8.3.0 (included, tested)
+- **Recommended for advanced users**: GCC 11.2 (officially supported, requires external toolchain)
 
 ## Current Default Configuration
 
 - **Included Toolchain**: GCC 8.3.0 (arm-rockchip830-linux-uclibcgnueabihf)
 - **Default Configuration**: `BR2_TOOLCHAIN_EXTERNAL_GCC_8=y`
+- **Officially Supported**: Up to GCC 11.2 ([Luckfox wiki reference](https://wiki.luckfox.com/Luckfox-Pico-Plus-Mini/Cross-Compile/))
 - **Toolchain Path**: `tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf`
+
+## Supported GCC Versions
+
+| GCC Version | Support Level | Notes |
+|------------|---------------|-------|
+| **GCC 8.3.0** | ✅ Default/Included | Pre-installed, fully tested |
+| **GCC 11.2** | ✅ **Officially Supported** | Requires external toolchain ([wiki](https://wiki.luckfox.com)) |
+| GCC 9.x, 10.x | ⚠️ Community | Should work, limited testing |
+| GCC 12-14 | ⚠️ Experimental | May work, requires extensive testing |
 
 ## Advantages of Higher GCC Versions
 
@@ -106,6 +124,48 @@ char *str = "constant string";  // Warning: deprecated conversion
 
 ## How to Enable Higher GCC Versions
 
+### Quick Start: Using GCC 11.2 (Officially Supported)
+
+The SDK officially supports GCC 11.2 according to the Luckfox wiki. Here's how to use it:
+
+**Step 1: Download GCC 11.2 ARM Toolchain**
+
+```bash
+# ARM GNU Toolchain 11.2
+cd tools/linux/toolchain/
+wget https://developer.arm.com/-/media/Files/downloads/gnu-a/11.2-2022.02/binrel/\
+gcc-arm-11.2-2022.02-x86_64-arm-none-linux-gnueabihf.tar.xz
+
+tar -xf gcc-arm-11.2-2022.02-x86_64-arm-none-linux-gnueabihf.tar.xz
+```
+
+**Step 2: Update Defconfig**
+
+Edit `sysdrv/tools/board/buildroot/luckfox_pico_defconfig` (or `luckfox_pico_w_defconfig`):
+
+```diff
+- BR2_TOOLCHAIN_EXTERNAL_PATH="../../../../tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf"
++ BR2_TOOLCHAIN_EXTERNAL_PATH="../../../../tools/linux/toolchain/gcc-arm-11.2-2022.02-x86_64-arm-none-linux-gnueabihf"
+
+- BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="arm-rockchip830-linux-uclibcgnueabihf"
++ BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="arm-none-linux-gnueabihf"
+
+- BR2_TOOLCHAIN_EXTERNAL_GCC_8=y
++ BR2_TOOLCHAIN_EXTERNAL_GCC_11=y
+```
+
+**Step 3: Build**
+
+```bash
+./build.sh clean
+./build.sh lunch
+./build.sh all
+```
+
+### General Instructions for Other GCC Versions
+
+## How to Enable Higher GCC Versions
+
 ### Step 1: Obtain a Compatible Toolchain
 
 **Option A: Download Pre-built Toolchain**
@@ -181,13 +241,14 @@ arm-none-linux-gnueabihf-gcc --version
 - Best compatibility
 - Community support
 
-### For Advanced Users: **Test GCC 11.x**
+### For Advanced Users: **Use GCC 11.2** (Officially Supported)
 - Good balance of features and stability
-- Reasonable compatibility
-- Modern C++ support
+- Officially supported by Luckfox
+- Modern C++ support (C++17/C++20)
 - Well-tested by broader community
+- Requires external toolchain (see instructions below)
 
-### For Experts Only: **GCC 12+ or GCC 9-10**
+### For Experts Only: **GCC 12-14 or GCC 9-10**
 - Cutting edge or specific needs
 - Extensive testing required
 - Be prepared to fix compilation issues

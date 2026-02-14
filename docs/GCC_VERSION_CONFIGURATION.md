@@ -138,7 +138,8 @@ Edit the appropriate defconfig file:
 **Change these lines:**
 ```diff
 - BR2_TOOLCHAIN_EXTERNAL_PATH="../../../../tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf"
-+ BR2_TOOLCHAIN_EXTERNAL_PATH="../../../../tools/linux/toolchain/arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-linux-gnueabihf"
++ BR2_TOOLCHAIN_EXTERNAL_PATH="../../../../tools/linux/toolchain/\
++   arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-linux-gnueabihf"
 
 - BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="arm-rockchip830-linux-uclibcgnueabihf"
 + BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="arm-none-linux-gnueabihf"
@@ -146,6 +147,8 @@ Edit the appropriate defconfig file:
 - BR2_TOOLCHAIN_EXTERNAL_GCC_8=y
 + BR2_TOOLCHAIN_EXTERNAL_GCC_11=y
 ```
+
+**Note**: For the PATH value, ensure it's all on one line in the actual file (backslash shown here for readability).
 
 ### Step 3: Verify and Test
 

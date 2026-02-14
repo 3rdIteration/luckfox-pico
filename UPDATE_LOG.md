@@ -1,4 +1,8 @@
 # Updatelog
+## V1.5 Updatelog
+1. Updated Buildroot to version 2024.11.4 (from 2023.02.6) for improved compatibility and security.
+2. Added automated GitHub Actions build for RV1103_Luckfox_Pico_Mini with SPI_NAND on pull requests to main branch.
+3. Renumbered custom busybox patches to avoid conflicts with upstream buildroot patches.
 ## V1.4 Updatelog
 1. Updated U-Boot to support fast boot for RV1106 using SPI NAND and eMMC.
 2. Optimized U-Boot compatibility with SD cards, reducing the likelihood of SD card recognition failures.

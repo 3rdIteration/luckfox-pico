@@ -5,13 +5,10 @@
 * It provides a customized SDK specifically for Luckfox Pico series development boards 
 * Aimed at providing developers with a better programming experience
 ## SDK Updatelog
-+ Current Version: V1.4
-1. Updated U-Boot to support fast boot for RV1106 using SPI NAND and eMMC.
-2. Optimized U-Boot compatibility with SD cards, reducing the likelihood of SD card recognition failures.
-3. Updated the kernel version to 5.10.160, increasing the NPU frequency for RV1106G3.
-4. Updated the Buildroot mirror source for more stable package downloads.
-5. Added support for custom file systems.
-6. Partial bug fixes
++ Current Version: V1.5
+1. Updated Buildroot to version 2024.11.4 (from 2023.02.6) for improved compatibility and security.
+2. Added automated GitHub Actions build for RV1103_Luckfox_Pico_Mini with SPI_NAND on pull requests to main branch.
+3. Renumbered custom busybox patches to avoid conflicts with upstream buildroot patches.
 ## SDK Usage Instructions
 * recommended operating system : Ubuntu 22.04 
 ### Installing Dependencies

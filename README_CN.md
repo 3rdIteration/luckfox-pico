@@ -44,6 +44,25 @@ sudo apt-get install repo git ssh make gcc gcc-multilib g++-multilib module-assi
     cd {SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/
     source env_install_toolchain.sh
     ```
+
+### GCC 11.2 支持（可选）
+SDK 官方支持 GCC 11.2，适用于需要现代 C++ 特性的高级用户。
+
+**快速安装：**
+```bash
+cd tools/linux/toolchain
+./install_gcc_11.2.sh          # 下载并安装 GCC 11.2
+./switch_gcc_version.sh 11     # 切换 SDK 使用 GCC 11.2
+```
+
+**切换回 GCC 8.3.0（默认）：**
+```bash
+cd tools/linux/toolchain
+./switch_gcc_version.sh 8
+```
+
+详细信息请参见 `docs/GCC_VERSION_CONFIGURATION.md`，了解优缺点和手动配置方法。
+
 ### build.sh使用说明
 * SDK使用build.sh脚本实现自动编译，大部分编译操作均可以通过build.sh自动完成.
 #### build.sh全部可用选项

@@ -25,6 +25,25 @@ git clone https://github.com/LuckfoxTECH/luckfox-pico.git
 cd {SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/
 source env_install_toolchain.sh
 ```
+
+### GCC 11.2 Support (Optional)
+The SDK officially supports GCC 11.2 for advanced users who need modern C++ features.
+
+**Quick installation:**
+```bash
+cd tools/linux/toolchain
+./install_gcc_11.2.sh          # Downloads and installs GCC 11.2
+./switch_gcc_version.sh 11     # Switches SDK to use GCC 11.2
+```
+
+**To switch back to GCC 8.3.0 (default):**
+```bash
+cd tools/linux/toolchain
+./switch_gcc_version.sh 8
+```
+
+See `docs/GCC_VERSION_CONFIGURATION.md` for detailed information about advantages, disadvantages, and manual configuration.
+
 ### Get the SDK
 * GitHub
     ```

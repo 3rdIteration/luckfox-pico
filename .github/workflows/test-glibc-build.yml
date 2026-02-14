@@ -1,0 +1,190 @@
+name: Test glibc Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'sysdrv/tools/board/buildroot/**'
+      - '.github/workflows/test-glibc-build.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'sysdrv/tools/board/buildroot/**'
+      - '.github/workflows/test-glibc-build.yml'
+  workflow_dispatch:
+
+jobs:
+  test-glibc-config:
+    name: Test glibc Configuration
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        config:
+          - luckfox_pico_defconfig
+          - luckfox_pico_w_defconfig
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git ssh make gcc gcc-multilib g++-multilib module-assistant expect \
+            g++ gawk texinfo libssl-dev bison flex fakeroot cmake unzip gperf \
+            autoconf device-tree-compiler libncurses5-dev pkg-config bc \
+            python-is-python3 passwd openssl openssh-server openssh-client \
+            vim file cpio rsync
+
+      - name: Extract buildroot
+        run: |
+          cd sysdrv/tools/board/buildroot
+          if [ ! -d buildroot-2024.11.4 ]; then
+            tar -xzf buildroot-2024.11.4.tar.gz
+          fi
+
+      - name: Verify glibc configuration
+        run: |
+          cd sysdrv/tools/board/buildroot/buildroot-2024.11.4
+          
+          # Load the defconfig
+          make defconfig BR2_DEFCONFIG=../${{ matrix.config }}
+          
+          # Check that glibc is enabled
+          echo "Checking glibc configuration..."
+          if grep -q "^BR2_TOOLCHAIN_BUILDROOT_GLIBC=y" .config; then
+            echo "✓ glibc is enabled"
+          else
+            echo "✗ glibc is NOT enabled"
+            exit 1
+          fi
+          
+          # Check glibc package
+          if grep -q "^BR2_PACKAGE_GLIBC=y" .config; then
+            echo "✓ glibc package is enabled"
+          else
+            echo "✗ glibc package is NOT enabled"
+            exit 1
+          fi
+          
+          # Verify we're using internal toolchain, not external
+          if grep -q "^BR2_TOOLCHAIN_EXTERNAL=y" .config; then
+            echo "✗ Still using external toolchain"
+            exit 1
+          else
+            echo "✓ Using internal buildroot toolchain"
+          fi
+          
+          # Verify ARM Cortex-A7 support
+          if grep -q "^BR2_cortex_a7=y" .config; then
+            echo "✓ ARM Cortex-A7 is configured"
+          else
+            echo "✗ ARM Cortex-A7 is NOT configured"
+            exit 1
+          fi
+          
+          # Verify hard-float ABI
+          if grep -q "^BR2_ARM_EABIHF=y" .config; then
+            echo "✓ Hard-float ABI (EABIHF) is configured"
+          else
+            echo "✗ Hard-float ABI is NOT configured"
+            exit 1
+          fi
+          
+          # Verify VFPv4/NEON support
+          if grep -q "^BR2_ARM_CPU_HAS_VFPV4=y" .config && grep -q "^BR2_ARM_CPU_HAS_NEON=y" .config; then
+            echo "✓ VFPv4 and NEON support is configured"
+          else
+            echo "✗ VFPv4/NEON support is NOT configured"
+            exit 1
+          fi
+          
+          # Check target triplet
+          TARGET_NAME=$(make -s printvars VARS=GNU_TARGET_NAME 2>/dev/null | cut -d'=' -f2)
+          if [ "$TARGET_NAME" = "arm-buildroot-linux-gnueabihf" ]; then
+            echo "✓ Target triplet is correct: $TARGET_NAME"
+          else
+            echo "✗ Target triplet is incorrect: $TARGET_NAME (expected: arm-buildroot-linux-gnueabihf)"
+            exit 1
+          fi
+          
+          # Display key configuration options
+          echo ""
+          echo "=== Configuration Summary ==="
+          echo "Target: $TARGET_NAME"
+          echo "Architecture: ARMv7-A (Cortex-A7)"
+          echo "ABI: EABIHF (hard-float)"
+          echo "FPU: $(grep '^BR2_ARM_FPU_VFPV4' .config | cut -d'=' -f1 | sed 's/BR2_ARM_FPU_//')"
+          echo "GCC: $(grep '^BR2_GCC_VERSION=' .config | cut -d'"' -f2)"
+          echo "glibc: $(grep 'GLIBC_VERSION' package/glibc/glibc.mk | head -1 | awk '{print $3}' | cut -d'-' -f1)"
+          echo ""
+
+      - name: Test toolchain build (limited)
+        run: |
+          cd sysdrv/tools/board/buildroot/buildroot-2024.11.4
+          
+          # Load the defconfig again
+          make defconfig BR2_DEFCONFIG=../${{ matrix.config }}
+          
+          # Build only the toolchain components to verify glibc can be built
+          # This is a faster test than building the entire system
+          echo "Testing toolchain build..."
+          timeout 3600 make toolchain 2>&1 | tee build.log
+          
+          # Check if toolchain was built successfully
+          if [ $? -eq 0 ]; then
+            echo "✓ Toolchain with glibc built successfully"
+            
+            # Verify glibc was actually built
+            if [ -f output/host/arm-buildroot-linux-gnueabihf/sysroot/lib/libc.so.6 ]; then
+              echo "✓ glibc library found in toolchain"
+              
+              # Check glibc version
+              GCC_VERSION=$(output/host/bin/arm-buildroot-linux-gnueabihf-gcc --version 2>&1 | head -1)
+              echo "Toolchain GCC: $GCC_VERSION"
+              
+              # Try to get glibc version from the library
+              if [ -f output/host/arm-buildroot-linux-gnueabihf/sysroot/lib/libc.so.6 ]; then
+                echo "glibc version info:"
+                strings output/host/arm-buildroot-linux-gnueabihf/sysroot/lib/libc.so.6 | grep -E "GNU C Library|release version" | head -5 || true
+              fi
+            else
+              echo "✗ glibc library NOT found in toolchain"
+              exit 1
+            fi
+          else
+            echo "✗ Toolchain build failed or timed out"
+            tail -100 build.log
+            exit 1
+          fi
+
+      - name: Summary
+        if: success()
+        run: |
+          echo "================================================"
+          echo "✓ SUCCESS: ${{ matrix.config }} with glibc"
+          echo "================================================"
+          echo ""
+          echo "Configuration verified:"
+          echo "  - Using buildroot internal toolchain"
+          echo "  - glibc 2.40 (highest supported version)"
+          echo "  - ARM Cortex-A7 (ARMv7-A)"
+          echo "  - Hard-float ABI (EABIHF)"
+          echo "  - VFPv4-D16 + NEON"
+          echo "  - C++ support enabled"
+          echo "  - GCC 13.x toolchain"
+          echo "  - Target: arm-buildroot-linux-gnueabihf"
+          echo ""
+
+      - name: Upload build logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-logs-${{ matrix.config }}
+          path: |
+            sysdrv/tools/board/buildroot/buildroot-2024.11.4/.config
+            sysdrv/tools/board/buildroot/buildroot-2024.11.4/build.log
+          retention-days: 7

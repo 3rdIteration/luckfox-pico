@@ -1,3 +1,4 @@
+---
 name: Test GCC 11.2 Integration
 
 on:
@@ -30,7 +31,7 @@ jobs:
   test-scripts:
     name: Test GCC 11.2 Scripts
     runs-on: ubuntu-22.04
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,14 +44,14 @@ jobs:
       - name: Test installer script (dry run)
         run: |
           cd tools/linux/toolchain
-          
+
           # Make scripts executable
           chmod +x install_gcc_11.2.sh switch_gcc_version.sh
-          
+
           # Test help/usage
           echo "=== Testing script help ==="
           ./switch_gcc_version.sh || true
-          
+
           echo ""
           echo "=== Testing invalid argument ==="
           ./switch_gcc_version.sh 99 || true
@@ -58,21 +59,21 @@ jobs:
       - name: Download GCC 11.2 Toolchain
         run: |
           cd tools/linux/toolchain
-          
+
           echo "=== Running GCC 11.2 installer ==="
           ./install_gcc_11.2.sh
-          
+
           # Verify installation
           if [ ! -d "gcc-arm-11.2-2022.02-x86_64-arm-none-linux-gnueabihf" ]; then
             echo "ERROR: Toolchain directory not created"
             exit 1
           fi
-          
+
           if [ ! -x "gcc-arm-11.2-2022.02-x86_64-arm-none-linux-gnueabihf/bin/arm-none-linux-gnueabihf-gcc" ]; then
             echo "ERROR: GCC binary not found or not executable"
             exit 1
           fi
-          
+
           # Test compiler
           echo ""
           echo "=== Testing GCC 11.2 compiler ==="
@@ -81,73 +82,73 @@ jobs:
       - name: Test version switcher to GCC 11.2
         run: |
           cd tools/linux/toolchain
-          
+
           echo "=== Switching to GCC 11.2 ==="
           ./switch_gcc_version.sh 11
-          
+
           # Verify defconfig changes
           echo ""
           echo "=== Verifying defconfig changes ==="
-          
+
           if ! grep -q "BR2_TOOLCHAIN_EXTERNAL_GCC_11=y" ../../sysdrv/tools/board/buildroot/luckfox_pico_defconfig; then
             echo "ERROR: luckfox_pico_defconfig not updated to GCC 11"
             exit 1
           fi
-          
+
           if ! grep -q "gcc-arm-11.2-2022.02" ../../sysdrv/tools/board/buildroot/luckfox_pico_defconfig; then
             echo "ERROR: luckfox_pico_defconfig path not updated"
             exit 1
           fi
-          
+
           echo "✓ Defconfig successfully updated to GCC 11.2"
 
       - name: Test version switcher back to GCC 8
         run: |
           cd tools/linux/toolchain
-          
+
           echo "=== Switching back to GCC 8.3.0 ==="
           ./switch_gcc_version.sh 8
-          
+
           # Verify defconfig changes
           echo ""
           echo "=== Verifying defconfig restored ==="
-          
+
           if ! grep -q "BR2_TOOLCHAIN_EXTERNAL_GCC_8=y" ../../sysdrv/tools/board/buildroot/luckfox_pico_defconfig; then
             echo "ERROR: luckfox_pico_defconfig not restored to GCC 8"
             exit 1
           fi
-          
+
           if ! grep -q "arm-rockchip830-linux-uclibcgnueabihf" ../../sysdrv/tools/board/buildroot/luckfox_pico_defconfig; then
             echo "ERROR: luckfox_pico_defconfig path not restored"
             exit 1
           fi
-          
+
           echo "✓ Defconfig successfully restored to GCC 8.3.0"
 
       - name: Test re-running installer (already installed)
         run: |
           cd tools/linux/toolchain
-          
+
           echo "=== Testing already-installed detection ==="
           ./install_gcc_11.2.sh
-          
+
           # Should detect existing installation and exit successfully
           if [ $? -ne 0 ]; then
             echo "ERROR: Script failed when toolchain already installed"
             exit 1
           fi
-          
+
           echo "✓ Already-installed detection works"
 
       - name: Show toolchain info
         run: |
           echo "=== Installed Toolchains ==="
           ls -lh tools/linux/toolchain/
-          
+
           echo ""
           echo "=== GCC 8.3.0 Info ==="
           tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --version
-          
+
           echo ""
           echo "=== GCC 11.2 Info ==="
           tools/linux/toolchain/gcc-arm-11.2-2022.02-x86_64-arm-none-linux-gnueabihf/bin/arm-none-linux-gnueabihf-gcc --version
@@ -166,9 +167,9 @@ jobs:
     runs-on: ubuntu-22.04
     needs: test-scripts
     if: |
-      github.event_name == 'workflow_dispatch' && 
+      github.event_name == 'workflow_dispatch' &&
       github.event.inputs.test_level == 'full_build'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -182,10 +183,10 @@ jobs:
         run: |
           cd tools/linux/toolchain
           chmod +x install_gcc_11.2.sh switch_gcc_version.sh
-          
+
           echo "=== Installing GCC 11.2 ==="
           ./install_gcc_11.2.sh
-          
+
           echo "=== Switching to GCC 11.2 ==="
           ./switch_gcc_version.sh 11
 
@@ -193,18 +194,18 @@ jobs:
         run: |
           HARDWARE="${{ github.event.inputs.hardware_type || 'RV1103_Luckfox_Pico_Mini' }}"
           BOOT_MEDIUM="SPI_NAND"
-          
+
           BOARD_CONFIG="project/cfg/BoardConfig_IPC/BoardConfig-${BOOT_MEDIUM}-Buildroot-${HARDWARE}-IPC.mk"
-          
+
           if [ ! -f "$BOARD_CONFIG" ]; then
             echo "Error: Board config file not found: $BOARD_CONFIG"
             ls -1 project/cfg/BoardConfig_IPC/
             exit 1
           fi
-          
+
           echo "Using board config: $BOARD_CONFIG"
           ln -rfs "$BOARD_CONFIG" .BoardConfig.mk
-          
+
           echo "=== Verifying GCC 11.2 is active ==="
           grep "BR2_TOOLCHAIN_EXTERNAL_GCC" sysdrv/tools/board/buildroot/luckfox_pico_defconfig | grep -v "^#"
 
@@ -220,13 +221,13 @@ jobs:
         run: |
           echo "=== Checking build outputs ==="
           ls -lh output/image/
-          
+
           # Check for key files
           if [ ! -f "output/image/boot.img" ]; then
             echo "ERROR: boot.img not found"
             exit 1
           fi
-          
+
           echo "✓ Build with GCC 11.2 successful"
 
       - name: Upload build artifacts
@@ -243,23 +244,23 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [test-scripts, test-build-gcc11]
     if: always()
-    
+
     steps:
       - name: Generate summary
         run: |
           echo "# GCC 11.2 Integration Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           echo "## Test Jobs" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Scripts Test**: ${{ needs.test-scripts.result }}" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.test_level }}" = "full_build" ]; then
             echo "- **Full Build Test**: ${{ needs.test-build-gcc11.result }}" >> $GITHUB_STEP_SUMMARY
           else
             echo "- **Full Build Test**: Skipped" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Tested Components" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -268,7 +269,7 @@ jobs:
           echo "- ✓ Defconfig automatic updates" >> $GITHUB_STEP_SUMMARY
           echo "- ✓ Already-installed detection" >> $GITHUB_STEP_SUMMARY
           echo "- ✓ Compiler functionality" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ needs.test-build-gcc11.result }}" = "success" ]; then
             echo "- ✓ Full SDK build with GCC 11.2" >> $GITHUB_STEP_SUMMARY
           fi

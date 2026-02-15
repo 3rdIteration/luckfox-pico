@@ -8,7 +8,7 @@ endif
 target=make_meta.c
 target_bin_host=$(patsubst %.c,%,$(target))_host
 target_bin=$(patsubst %.c,%,$(target))
-CROSS_COMPILE_CC ?= arm-rockchip830-linux-uclibcgnueabihf-gcc
+CROSS_COMPILE_CC ?= arm-buildroot-linux-gnueabihf-gcc
 
 all: 
 	$(HOST_CC) $(CFLAGS) -o $(target_bin_host) $(target) -I ../zlib/out_host_pc/include/ ../zlib/out_host_pc/lib/libz.a 

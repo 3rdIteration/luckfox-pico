@@ -72,7 +72,7 @@ export RK_BUILDROOT_DEFCONFIG=luckfox_pico_w_defconfig
 export RK_ARCH=arm
 
 # Target Toolchain Cross Compile
-export RK_TOOLCHAIN_CROSS=arm-rockchip830-linux-uclibcgnueabihf
+export RK_TOOLCHAIN_CROSS=arm-buildroot-linux-gnueabihf
 
 #misc image
 export RK_MISC=wipe_all-misc.img

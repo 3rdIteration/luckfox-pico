@@ -6,10 +6,10 @@ CURRENT_DIR := $(shell pwd)
 ifneq ($(RK_TOOLCHAIN_CROSS),)
 META_CROSS ?= $(RK_TOOLCHAIN_CROSS)
 else
-META_CROSS ?= arm-rockchip830-linux-uclibcgnueabihf
+META_CROSS ?= arm-buildroot-linux-gnueabihf
 endif
 $(info META_CROSS is [$(META_CROSS)])
-ifeq ($(META_CROSS),arm-rockchip830-linux-uclibcgnueabihf)
+ifeq ($(META_CROSS),arm-buildroot-linux-gnueabihf)
 PKG_USE_THUMB2=YES
 endif
 

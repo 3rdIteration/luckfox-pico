@@ -2,7 +2,7 @@
 # Overlay cfg-common.mk
 #
 export CONFIG_RK_CHIP=rv1106
-export CONFIG_RK_MEDIA_CROSS=arm-rockchip830-linux-uclibcgnueabihf
+export CONFIG_RK_MEDIA_CROSS=arm-buildroot-linux-gnueabihf
 
 #------------------------------------------------
 # Enable libdrm

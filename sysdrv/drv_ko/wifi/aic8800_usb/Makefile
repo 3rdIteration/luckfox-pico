@@ -56,8 +56,8 @@ all: modules
 modules:
 	#make -C $(KDIR) M=$(PWD) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) modules
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KERNEL_DIR) M=$(shell pwd) modules -j12 O=$(WIFI_BUILD_KERNEL_OBJ_DIR)
-	arm-rockchip830-linux-uclibcgnueabihf-strip --strip-debug $(shell pwd)/aic8800_fdrv/aic8800_fdrv.ko
-	arm-rockchip830-linux-uclibcgnueabihf-strip --strip-debug $(shell pwd)/aic_load_fw/aic_load_fw.ko
+	arm-buildroot-linux-gnueabihf-strip --strip-debug $(shell pwd)/aic8800_fdrv/aic8800_fdrv.ko
+	arm-buildroot-linux-gnueabihf-strip --strip-debug $(shell pwd)/aic_load_fw/aic_load_fw.ko
 	cp $(shell pwd)/aic8800_fdrv/aic8800_fdrv.ko $(M_OUT_DIR)
 	cp $(shell pwd)/aic_load_fw/aic_load_fw.ko $(M_OUT_DIR)
 	mkdir -p $(M_OUT_DIR)/aic_fw

@@ -249,9 +249,20 @@ ifeq ($(ARCH),arm64)
 KERNEL_DTB := $(SYSDRV_KERNEL_OBJS_OUTPUT_DIR)/arch/$(ARCH)/boot/dts/rockchip/$(KERNEL_DTS:dts=dtb)
 endif
 
-TOOLCHAIN_FILE := $(shell which $(SYSDRV_CROSS)-gcc )
-TOOLCHAIN_DIR := $(shell dirname $(shell dirname $(TOOLCHAIN_FILE)))
-RUNTIMELIB_DIR = $(shell dirname $(TOOLCHAIN_DIR))/$(RUNTIME_LIB)
+# Toolchain detection: buildroot internal toolchain takes precedence
+BUILDROOT_TOOLCHAIN_PATH := $(BUILDROOT_DIR)/$(BUILDROOT_VER)/output/host
+ifneq ($(wildcard $(BUILDROOT_TOOLCHAIN_PATH)/bin/$(SYSDRV_CROSS)-gcc),)
+    # Using buildroot's internal toolchain
+    TOOLCHAIN_FILE := $(BUILDROOT_TOOLCHAIN_PATH)/bin/$(SYSDRV_CROSS)-gcc
+    TOOLCHAIN_DIR := $(BUILDROOT_TOOLCHAIN_PATH)
+    TOOLCHAIN_RUNTIME_LIB_PATH := $(BUILDROOT_TOOLCHAIN_PATH)/$(SYSDRV_CROSS)/sysroot
+else
+    # Using external toolchain (fallback)
+    TOOLCHAIN_FILE := $(shell which $(SYSDRV_CROSS)-gcc 2>/dev/null)
+    TOOLCHAIN_DIR := $(shell dirname $(shell dirname $(TOOLCHAIN_FILE)))
+    RUNTIMELIB_DIR = $(shell dirname $(TOOLCHAIN_DIR))/$(RUNTIME_LIB)
+    TOOLCHAIN_RUNTIME_LIB_PATH := $(TOOLCHAIN_DIR)/$(TOOLCHAIN_RUNTIME_LIB)
+endif
 
 TOOLCHAIN_RUNTIME_LIB:=runtime_lib
 
@@ -522,7 +533,17 @@ rootfs_prepare: prepare
 	rm -rf $(SYSDRV_DIR_OUT_ROOTFS)
 	mkdir -p $(SYSDRV_DIR_OUT_ROOTFS)
 	tar xf $(SYSDRV_DIR)/tools/board/rootfs_script.tar -C $(SYSDRV_DIR_OUT_ROOTFS)
-	tar xjf $(TOOLCHAIN_DIR)/$(TOOLCHAIN_RUNTIME_LIB)/$(TOOLCHAIN_RUNTIME_LIB_C) -C $(SYSDRV_DIR_OUT_ROOTFS)
+	# Extract runtime libraries based on toolchain type
+	@if [ -f "$(TOOLCHAIN_RUNTIME_LIB_PATH)/$(TOOLCHAIN_RUNTIME_LIB_C)" ]; then \
+		echo "Using external toolchain runtime libraries..."; \
+		tar xjf $(TOOLCHAIN_RUNTIME_LIB_PATH)/$(TOOLCHAIN_RUNTIME_LIB_C) -C $(SYSDRV_DIR_OUT_ROOTFS); \
+	elif [ -d "$(TOOLCHAIN_RUNTIME_LIB_PATH)/lib" ]; then \
+		echo "Using buildroot internal toolchain runtime libraries..."; \
+		cp -a $(TOOLCHAIN_RUNTIME_LIB_PATH)/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/lib/ 2>/dev/null || true; \
+		cp -a $(TOOLCHAIN_RUNTIME_LIB_PATH)/usr/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/usr/lib/ 2>/dev/null || true; \
+	else \
+		echo "Warning: No runtime libraries found for toolchain"; \
+	fi
 	pushd $(SYSDRV_DIR_OUT_ROOTFS)/lib/ ; mv -fv \
 		libasan_preinit.o \
 		libasan.so* \

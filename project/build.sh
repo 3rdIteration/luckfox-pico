@@ -803,6 +803,18 @@ function build_sysdrv() {
 	echo "============Start building sysdrv============"
 
 	mkdir -p ${RK_PROJECT_OUTPUT_IMAGE}
+	
+	# If using buildroot internal toolchain and it doesn't exist, build it first
+	BUILDROOT_TOOLCHAIN_PATH="${SDK_SYSDRV_DIR}/source/buildroot/buildroot-2024.11.4/output/host"
+	if [[ "${RK_PROJECT_TOOLCHAIN_CROSS}" == *"buildroot"* ]]; then
+		if [ ! -f "${BUILDROOT_TOOLCHAIN_PATH}/bin/${RK_PROJECT_TOOLCHAIN_CROSS}-gcc" ]; then
+			msg_info "Building buildroot to create internal toolchain..."
+			make buildroot -C ${SDK_SYSDRV_DIR}
+		else
+			msg_info "Buildroot internal toolchain already exists, skipping buildroot build."
+		fi
+	fi
+	
 	build_uboot
 	build_kernel
 	build_rootfs

@@ -2740,7 +2740,16 @@ fi
 __LINK_DEFCONFIG_FROM_BOARD_CFG
 export RK_PROJECT_BOARD_DIR=$(dirname $(realpath $BOARD_CONFIG))
 export RK_PROJECT_TOOLCHAIN_CROSS=$RK_TOOLCHAIN_CROSS
-export PATH="${SDK_ROOT_DIR}/tools/linux/toolchain/${RK_PROJECT_TOOLCHAIN_CROSS}/bin":$PATH
+
+# Check for buildroot internal toolchain first (preferred for glibc builds)
+BUILDROOT_TOOLCHAIN_PATH="${SDK_SYSDRV_DIR}/source/buildroot/buildroot-2024.11.4/output/host"
+if [ -f "${BUILDROOT_TOOLCHAIN_PATH}/bin/${RK_PROJECT_TOOLCHAIN_CROSS}-gcc" ]; then
+	msg_info "Using buildroot internal toolchain at ${BUILDROOT_TOOLCHAIN_PATH}"
+	export PATH="${BUILDROOT_TOOLCHAIN_PATH}/bin":$PATH
+else
+	# Fallback to external toolchain
+	export PATH="${SDK_ROOT_DIR}/tools/linux/toolchain/${RK_PROJECT_TOOLCHAIN_CROSS}/bin":$PATH
+fi
 
 if echo $@ | grep -wqE "help|-h"; then
 	if [ -n "$2" -a "$(type -t usage$2)" == function ]; then
@@ -2752,14 +2761,22 @@ if echo $@ | grep -wqE "help|-h"; then
 	exit 0
 fi
 
+# Check if toolchain is available
 if ! ${RK_PROJECT_TOOLCHAIN_CROSS}-gcc --version &>/dev/null; then
-	msg_error "Not found toolchain ${RK_PROJECT_TOOLCHAIN_CROSS}-gcc for [$RK_CHIP] !!!"
-	msg_info "Please run these commands to install ${RK_PROJECT_TOOLCHAIN_CROSS}-gcc"
-	echo ""
-	echo "    cd ${SDK_ROOT_DIR}/tools/linux/toolchain/${RK_PROJECT_TOOLCHAIN_CROSS}/"
-	echo "    source env_install_toolchain.sh"
-	echo ""
-	exit 1
+	# For buildroot-based toolchains, it's OK if not found yet - it will be built
+	if [[ "${RK_PROJECT_TOOLCHAIN_CROSS}" == *"buildroot"* ]]; then
+		msg_info "Buildroot internal toolchain not found yet. It will be built during the build process."
+		msg_info "If this is your first build, buildroot will compile the toolchain automatically."
+	else
+		# For external toolchains, it's an error if not found
+		msg_error "Not found toolchain ${RK_PROJECT_TOOLCHAIN_CROSS}-gcc for [$RK_CHIP] !!!"
+		msg_info "Please run these commands to install ${RK_PROJECT_TOOLCHAIN_CROSS}-gcc"
+		echo ""
+		echo "    cd ${SDK_ROOT_DIR}/tools/linux/toolchain/${RK_PROJECT_TOOLCHAIN_CROSS}/"
+		echo "    source env_install_toolchain.sh"
+		echo ""
+		exit 1
+	fi
 fi
 
 case $RK_PROJECT_TOOLCHAIN_CROSS in

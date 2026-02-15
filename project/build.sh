@@ -810,8 +810,18 @@ function build_sysdrv() {
 		if [ ! -f "${BUILDROOT_TOOLCHAIN_PATH}/bin/${RK_PROJECT_TOOLCHAIN_CROSS}-gcc" ]; then
 			msg_info "Building buildroot to create internal toolchain..."
 			make buildroot -C ${SDK_SYSDRV_DIR}
+			# Add the newly built toolchain to PATH
+			if [ -f "${BUILDROOT_TOOLCHAIN_PATH}/bin/${RK_PROJECT_TOOLCHAIN_CROSS}-gcc" ]; then
+				msg_info "Adding buildroot internal toolchain to PATH: ${BUILDROOT_TOOLCHAIN_PATH}/bin"
+				export PATH="${BUILDROOT_TOOLCHAIN_PATH}/bin":$PATH
+			else
+				msg_error "Buildroot build completed but toolchain not found at ${BUILDROOT_TOOLCHAIN_PATH}/bin"
+				exit 1
+			fi
 		else
 			msg_info "Buildroot internal toolchain already exists, skipping buildroot build."
+			# Ensure toolchain is in PATH
+			export PATH="${BUILDROOT_TOOLCHAIN_PATH}/bin":$PATH
 		fi
 	fi
 	

@@ -35,11 +35,22 @@ ifeq ($(CHIP),)
 $(error Please Select CHIP, build like this: make CHIP=<rv1126|rk3588>)
 endif
 
-ifeq ($(shell $(SYSDRV_CROSS)-gcc --version),)
+# Check if toolchain is available
+ifeq ($(shell $(SYSDRV_CROSS)-gcc --version 2>/dev/null),)
+# Toolchain not found - check if it's a buildroot-based toolchain
+ifneq ($(findstring buildroot,$(SYSDRV_CROSS)),)
+# Buildroot toolchain - it's OK if not found yet, will be built during build process
+$(info ************************************************************************)
+$(info Buildroot internal toolchain not found yet.)
+$(info It will be built automatically during the build process.)
+$(info ************************************************************************)
+else
+# External toolchain - must be present
 $(info ************************************************************************)
 $(info Not found tool $(SYSDRV_CROSS)-gcc, please install first !!!)
 $(info ************************************************************************)
 $(error *ERROR*)
+endif
 endif
 
 PATH:=$(CURRENT_DIR)/tools/pc/uboot_tools:$(CURRENT_DIR)/out/bin/pc:$(PATH)

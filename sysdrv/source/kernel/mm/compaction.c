@@ -1257,6 +1257,8 @@ move_freelist_head(struct list_head *freelist, struct page *freepage)
  * move against each other if they search the free list exactly in
  * lockstep.
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
 static void
 move_freelist_tail(struct list_head *freelist, struct page *freepage)
 {
@@ -1268,6 +1270,7 @@ move_freelist_tail(struct list_head *freelist, struct page *freepage)
 			list_splice_tail(&sublist, freelist);
 	}
 }
+#pragma GCC diagnostic pop
 
 static void
 fast_isolate_around(struct compact_control *cc, unsigned long pfn, unsigned long nr_isolated)

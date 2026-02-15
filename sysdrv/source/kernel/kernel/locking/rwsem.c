@@ -1142,6 +1142,8 @@ static inline void rwsem_disable_reader_optspin(struct rw_semaphore *sem,
 /*
  * Wait until we successfully acquire the write lock
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
 static struct rw_semaphore *
 rwsem_down_write_slowpath(struct rw_semaphore *sem, int state)
 {
@@ -1310,6 +1312,7 @@ out_nolock:
 
 	return ERR_PTR(-EINTR);
 }
+#pragma GCC diagnostic pop
 
 /*
  * handle waking up a waiter on the semaphore

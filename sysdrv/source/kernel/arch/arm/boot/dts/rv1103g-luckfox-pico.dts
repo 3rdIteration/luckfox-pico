@@ -152,6 +152,10 @@
 	status = "disabled";
 };
 
-
+&pwm5 {
+        status = "okay";
+	pinctrl-names = "active";
+	pinctrl-0 = <&pwm5m1_pins>;
+};
 
 

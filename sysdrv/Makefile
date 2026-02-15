@@ -250,6 +250,7 @@ KERNEL_DTB := $(SYSDRV_KERNEL_OBJS_OUTPUT_DIR)/arch/$(ARCH)/boot/dts/rockchip/$(
 endif
 
 # Toolchain detection: buildroot internal toolchain takes precedence
+TOOLCHAIN_RUNTIME_LIB:=runtime_lib
 BUILDROOT_TOOLCHAIN_PATH := $(BUILDROOT_DIR)/$(BUILDROOT_VER)/output/host
 ifneq ($(wildcard $(BUILDROOT_TOOLCHAIN_PATH)/bin/$(SYSDRV_CROSS)-gcc),)
     # Using buildroot's internal toolchain
@@ -259,12 +260,17 @@ ifneq ($(wildcard $(BUILDROOT_TOOLCHAIN_PATH)/bin/$(SYSDRV_CROSS)-gcc),)
 else
     # Using external toolchain (fallback)
     TOOLCHAIN_FILE := $(shell which $(SYSDRV_CROSS)-gcc 2>/dev/null)
-    TOOLCHAIN_DIR := $(shell dirname $(shell dirname $(TOOLCHAIN_FILE)))
-    RUNTIMELIB_DIR = $(shell dirname $(TOOLCHAIN_DIR))/$(RUNTIME_LIB)
-    TOOLCHAIN_RUNTIME_LIB_PATH := $(TOOLCHAIN_DIR)/$(TOOLCHAIN_RUNTIME_LIB)
+    ifeq ($(TOOLCHAIN_FILE),)
+        $(warning External toolchain $(SYSDRV_CROSS)-gcc not found in PATH)
+        $(warning Please ensure buildroot is built or toolchain is in PATH)
+        TOOLCHAIN_DIR :=
+        TOOLCHAIN_RUNTIME_LIB_PATH :=
+    else
+        TOOLCHAIN_DIR := $(shell dirname $(shell dirname $(TOOLCHAIN_FILE)))
+        RUNTIMELIB_DIR = $(shell dirname $(TOOLCHAIN_DIR))/$(RUNTIME_LIB)
+        TOOLCHAIN_RUNTIME_LIB_PATH := $(TOOLCHAIN_DIR)/$(TOOLCHAIN_RUNTIME_LIB)
+    endif
 endif
-
-TOOLCHAIN_RUNTIME_LIB:=runtime_lib
 
 RKBIN_DIR := $(SYSDRV_DIR)/source/uboot/rkbin
 UBOOT_DIR := $(SYSDRV_DIR)/source/uboot/u-boot
@@ -534,15 +540,20 @@ rootfs_prepare: prepare
 	mkdir -p $(SYSDRV_DIR_OUT_ROOTFS)
 	tar xf $(SYSDRV_DIR)/tools/board/rootfs_script.tar -C $(SYSDRV_DIR_OUT_ROOTFS)
 	# Extract runtime libraries based on toolchain type
-	@if [ -f "$(TOOLCHAIN_RUNTIME_LIB_PATH)/$(TOOLCHAIN_RUNTIME_LIB_C)" ]; then \
-		echo "Using external toolchain runtime libraries..."; \
+	@if [ -z "$(TOOLCHAIN_RUNTIME_LIB_PATH)" ]; then \
+		echo "Error: TOOLCHAIN_RUNTIME_LIB_PATH is not set. Please build buildroot first or install external toolchain."; \
+		exit 1; \
+	elif [ -f "$(TOOLCHAIN_RUNTIME_LIB_PATH)/$(TOOLCHAIN_RUNTIME_LIB_C)" ]; then \
+		echo "Using external toolchain runtime libraries from $(TOOLCHAIN_RUNTIME_LIB_PATH)..."; \
 		tar xjf $(TOOLCHAIN_RUNTIME_LIB_PATH)/$(TOOLCHAIN_RUNTIME_LIB_C) -C $(SYSDRV_DIR_OUT_ROOTFS); \
 	elif [ -d "$(TOOLCHAIN_RUNTIME_LIB_PATH)/lib" ]; then \
-		echo "Using buildroot internal toolchain runtime libraries..."; \
+		echo "Using buildroot internal toolchain runtime libraries from $(TOOLCHAIN_RUNTIME_LIB_PATH)..."; \
 		cp -a $(TOOLCHAIN_RUNTIME_LIB_PATH)/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/lib/ 2>/dev/null || true; \
 		cp -a $(TOOLCHAIN_RUNTIME_LIB_PATH)/usr/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/usr/lib/ 2>/dev/null || true; \
 	else \
-		echo "Warning: No runtime libraries found for toolchain"; \
+		echo "Error: No runtime libraries found at $(TOOLCHAIN_RUNTIME_LIB_PATH)"; \
+		echo "Please build buildroot with: make buildroot"; \
+		exit 1; \
 	fi
 	pushd $(SYSDRV_DIR_OUT_ROOTFS)/lib/ ; mv -fv \
 		libasan_preinit.o \

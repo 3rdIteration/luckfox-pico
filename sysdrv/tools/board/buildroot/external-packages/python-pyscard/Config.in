@@ -1,8 +1,0 @@
-config BR2_PACKAGE_PYTHON_PYSCARD
-	bool "python-pyscard"
-	help
-      pyscard smartcard library for python
-
-
-	  https://github.com/LudovicRousseau/pyscard
-    

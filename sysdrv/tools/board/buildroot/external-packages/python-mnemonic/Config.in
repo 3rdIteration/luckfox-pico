@@ -1,8 +1,0 @@
-config BR2_PACKAGE_PYTHON_MNEMONIC
-	bool "python-mnemonic"
-	help
-      Mnemonic code for generating deterministic keys, BIP39
-
-
-	  https://github.com/trezor/python-mnemonic
-    

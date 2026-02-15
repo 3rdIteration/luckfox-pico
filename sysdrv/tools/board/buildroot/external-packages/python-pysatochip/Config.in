@@ -1,7 +1,0 @@
-config BR2_PACKAGE_PYTHON_PYSATOCHIP
-	bool "python-pysatochip"
-	help
-      Python API for Satochip Devices (Seedkeeper, Satochip and Satodime)
-
-	  https://github.com/3rdIteration/pysatochip
-    

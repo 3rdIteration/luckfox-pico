@@ -226,6 +226,8 @@ down_read_failed(struct ld_semaphore *sem, long count, long timeout)
 /*
  * wait for the write lock to be granted
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
 static struct ld_semaphore __sched *
 down_write_failed(struct ld_semaphore *sem, long count, long timeout)
 {
@@ -289,6 +291,7 @@ down_write_failed(struct ld_semaphore *sem, long count, long timeout)
 		return NULL;
 	return sem;
 }
+#pragma GCC diagnostic pop
 
 
 

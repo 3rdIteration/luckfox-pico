@@ -226,7 +226,7 @@ After applying these changes, it is recommended to:
 3. **Test precompiled binaries** (if you must use them):
    ```bash
    # Check for library dependencies
-   arm-linux-readelf -d /path/to/binary
+   readelf -d /path/to/binary
    
    # Try running on new system
    LD_DEBUG=libs /path/to/binary
@@ -235,6 +235,8 @@ After applying these changes, it is recommended to:
    - Symbol version mismatches
    - Missing symbols
    - Segmentation faults on startup
+
+**Note**: The `readelf` tool is now included in the system via the binutils package for debugging binary compatibility issues.
 
 ### Regression Testing Checklist
 

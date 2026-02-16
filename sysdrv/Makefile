@@ -550,6 +550,18 @@ rootfs_prepare: prepare
 		echo "Using buildroot internal toolchain runtime libraries from $(TOOLCHAIN_RUNTIME_LIB_PATH)..."; \
 		cp -a $(TOOLCHAIN_RUNTIME_LIB_PATH)/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/lib/ 2>/dev/null || true; \
 		cp -a $(TOOLCHAIN_RUNTIME_LIB_PATH)/usr/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/usr/lib/ 2>/dev/null || true; \
+	elif [ -d "$(BUILDROOT_DIR)/$(BUILDROOT_VER)" ] && [ ! -d "$(TOOLCHAIN_RUNTIME_LIB_PATH)/lib" ]; then \
+		echo "Buildroot sysroot incomplete - runtime libraries not yet available."; \
+		echo "Building buildroot to create runtime libraries..."; \
+		$(MAKE) buildroot; \
+		if [ -d "$(TOOLCHAIN_RUNTIME_LIB_PATH)/lib" ]; then \
+			echo "Using buildroot internal toolchain runtime libraries from $(TOOLCHAIN_RUNTIME_LIB_PATH)..."; \
+			cp -a $(TOOLCHAIN_RUNTIME_LIB_PATH)/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/lib/ 2>/dev/null || true; \
+			cp -a $(TOOLCHAIN_RUNTIME_LIB_PATH)/usr/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/usr/lib/ 2>/dev/null || true; \
+		else \
+			echo "Error: buildroot built but runtime libraries still not found at $(TOOLCHAIN_RUNTIME_LIB_PATH)"; \
+			exit 1; \
+		fi; \
 	else \
 		echo "Error: No runtime libraries found at $(TOOLCHAIN_RUNTIME_LIB_PATH)"; \
 		echo "Please build buildroot with: make buildroot"; \

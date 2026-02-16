@@ -9,6 +9,9 @@
 1. 将Buildroot从2023.02.6升级到2024.11.4版本，提高兼容性和安全性
 2. 添加GitHub Actions自动构建支持，当提交PR到main分支时自动构建RV1103_Luckfox_Pico_Mini的SPI_NAND版本
 3. 重新编号自定义busybox补丁，避免与上游buildroot补丁冲突
+4. **切换到Buildroot内部工具链（uClibc-ng 1.0.50和GCC 13.x）**（从外部工具链uClibc-ng 1.0.31和GCC 8.x升级）。详情请参阅[TOOLCHAIN_MIGRATION.md](TOOLCHAIN_MIGRATION.md)和[COMPATIBILITY_GUIDE.md](COMPATIBILITY_GUIDE.md)。**⚠️ 需要完全重新构建 - 工具链之间的二进制文件不兼容。**
+5. **添加binutils软件包**（包括readelf、objdump、nm等工具）用于调试二进制兼容性和分析目标设备上的ELF文件。
+6. **修复Python运行时错误**：在uClibc-ng中启用堆栈保护（SSP）支持（`BR2_TOOLCHAIN_BUILDROOT_USE_SSP=y`），解决了`symbol '__stack_chk_guard': can't resolve symbol`错误。详见[PYTHON_SSP_FIX.md](PYTHON_SSP_FIX.md)。
 ## SDK 使用说明
 * 推荐SDK使用系统环境为Ubuntu 22.04
 ### 安装依赖

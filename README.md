@@ -11,6 +11,7 @@
 3. Renumbered custom busybox patches to avoid conflicts with upstream buildroot patches.
 4. **Switched to Buildroot internal toolchain with uClibc-ng 1.0.50 and GCC 13.x** (from external toolchain with uClibc-ng 1.0.31 and GCC 8.x). See [TOOLCHAIN_MIGRATION.md](TOOLCHAIN_MIGRATION.md) and [COMPATIBILITY_GUIDE.md](COMPATIBILITY_GUIDE.md) for details. **⚠️ Full rebuild required - binaries are not compatible between toolchains.**
 5. **Added binutils package** (includes readelf, objdump, nm, etc.) for debugging binary compatibility and analyzing ELF files on target.
+6. **Fixed Python runtime error** by enabling Stack Smashing Protection (SSP) support in uClibc-ng (`BR2_TOOLCHAIN_BUILDROOT_USE_SSP=y`). This resolves the `symbol '__stack_chk_guard': can't resolve symbol` error. See [PYTHON_SSP_FIX.md](PYTHON_SSP_FIX.md) for details.
 ## SDK Usage Instructions
 * recommended operating system : Ubuntu 22.04 
 ### Installing Dependencies

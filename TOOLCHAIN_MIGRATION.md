@@ -32,10 +32,13 @@ BR2_TOOLCHAIN_EXTERNAL_CXX=y
 BR2_TOOLCHAIN_BUILDROOT=y
 BR2_TOOLCHAIN_BUILDROOT_UCLIBC=y
 BR2_TOOLCHAIN_BUILDROOT_WCHAR=y
+BR2_TOOLCHAIN_BUILDROOT_USE_SSP=y
 BR2_KERNEL_HEADERS_5_10=y
 BR2_GCC_VERSION_13_X=y
 BR2_TOOLCHAIN_BUILDROOT_CXX=y
 ```
+
+**Note**: `BR2_TOOLCHAIN_BUILDROOT_USE_SSP=y` is essential for GCC 13 compatibility. GCC 13 enables stack protection by default, so uClibc-ng must provide SSP support. Without this, Python and other programs will fail with `symbol '__stack_chk_guard': can't resolve symbol` error. See [PYTHON_SSP_FIX.md](PYTHON_SSP_FIX.md) for details.
 
 ## Key Differences
 
@@ -52,7 +55,7 @@ BR2_TOOLCHAIN_BUILDROOT_CXX=y
 - **Kernel Headers**: Linux 5.10.x (same as external toolchain)
 - **WCHAR Support**: Enabled for wide character support
 - **C++ Support**: Enabled for C++ applications
-- **SSP Support**: Stack Smashing Protection available (automatic with GCC 13)
+- **SSP Support**: Stack Smashing Protection enabled (required for GCC 13 compatibility)
 
 ## Build Process Impact
 

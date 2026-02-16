@@ -554,12 +554,13 @@ rootfs_prepare: prepare
 		echo "Buildroot sysroot incomplete - runtime libraries not yet available."; \
 		echo "Building buildroot to create runtime libraries..."; \
 		$(MAKE) buildroot; \
-		if [ -d "$(TOOLCHAIN_RUNTIME_LIB_PATH)/lib" ]; then \
-			echo "Using buildroot internal toolchain runtime libraries from $(TOOLCHAIN_RUNTIME_LIB_PATH)..."; \
-			cp -a $(TOOLCHAIN_RUNTIME_LIB_PATH)/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/lib/ 2>/dev/null || true; \
-			cp -a $(TOOLCHAIN_RUNTIME_LIB_PATH)/usr/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/usr/lib/ 2>/dev/null || true; \
+		BR_SYSROOT="$(BUILDROOT_DIR)/$(BUILDROOT_VER)/output/host/$(SYSDRV_CROSS)/sysroot"; \
+		if [ -d "$$BR_SYSROOT/lib" ]; then \
+			echo "Using buildroot internal toolchain runtime libraries from $$BR_SYSROOT..."; \
+			cp -a $$BR_SYSROOT/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/lib/ 2>/dev/null || true; \
+			cp -a $$BR_SYSROOT/usr/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/usr/lib/ 2>/dev/null || true; \
 		else \
-			echo "Error: buildroot built but runtime libraries still not found at $(TOOLCHAIN_RUNTIME_LIB_PATH)"; \
+			echo "Error: buildroot built but runtime libraries still not found at $$BR_SYSROOT"; \
 			exit 1; \
 		fi; \
 	else \

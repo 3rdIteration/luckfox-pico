@@ -15,8 +15,32 @@ C_NORMAL = \033[0m
 ##   Platform Specified Configuraton
 ################################################################################
 include $(CURRENT_DIR)/cfg/cfg.mk
+
+# Dual toolchain support: separate toolchains for boot/kernel (uClibc) and userspace (glibc)
+# SYSDRV_CROSS_BOOT: Used for U-Boot and Linux kernel compilation
+# SYSDRV_CROSS_USERSPACE: Used for userspace applications (busybox/buildroot)
+
+ifeq ($(SYSDRV_CROSS_BOOT),)
+SYSDRV_CROSS_BOOT := $(CONFIG_SYSDRV_CROSS_BOOT)
+endif
+
+ifeq ($(SYSDRV_CROSS_USERSPACE),)
+SYSDRV_CROSS_USERSPACE := $(CONFIG_SYSDRV_CROSS_USERSPACE)
+endif
+
+# Fallback to single toolchain for backward compatibility
 ifeq ($(SYSDRV_CROSS),)
 SYSDRV_CROSS := $(CONFIG_SYSDRV_CROSS)
+endif
+
+# If only SYSDRV_CROSS is set, use it for both boot and userspace
+ifneq ($(SYSDRV_CROSS),)
+ifeq ($(SYSDRV_CROSS_BOOT),)
+SYSDRV_CROSS_BOOT := $(SYSDRV_CROSS)
+endif
+ifeq ($(SYSDRV_CROSS_USERSPACE),)
+SYSDRV_CROSS_USERSPACE := $(SYSDRV_CROSS)
+endif
 endif
 
 ifneq ($(findstring $(RK_CHIP),rv1126 rk3588 rv1106),)
@@ -35,9 +59,18 @@ ifeq ($(CHIP),)
 $(error Please Select CHIP, build like this: make CHIP=<rv1126|rk3588>)
 endif
 
-ifeq ($(shell $(SYSDRV_CROSS)-gcc --version),)
+# Validate boot toolchain
+ifeq ($(shell $(SYSDRV_CROSS_BOOT)-gcc --version 2>/dev/null),)
 $(info ************************************************************************)
-$(info Not found tool $(SYSDRV_CROSS)-gcc, please install first !!!)
+$(info Not found tool $(SYSDRV_CROSS_BOOT)-gcc, please install first !!!)
+$(info ************************************************************************)
+$(error *ERROR*)
+endif
+
+# Validate userspace toolchain
+ifeq ($(shell $(SYSDRV_CROSS_USERSPACE)-gcc --version 2>/dev/null),)
+$(info ************************************************************************)
+$(info Not found tool $(SYSDRV_CROSS_USERSPACE)-gcc, please install first !!!)
 $(info ************************************************************************)
 $(error *ERROR*)
 endif
@@ -58,29 +91,57 @@ endif
 SYSDRV_OPTS := -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
 KERNEL_DIR := $(CURRENT_DIR)/source/kernel
 
-ifeq ($(SYSDRV_CROSS),arm-rockchip830-linux-uclibcgnueabihf)
-SYSDRV_LIB_TYPE := uclibc
+# Determine ARCH and flags based on boot toolchain (for kernel/uboot)
+ifeq ($(SYSDRV_CROSS_BOOT),arm-rockchip830-linux-uclibcgnueabihf)
+SYSDRV_LIB_TYPE_BOOT := uclibc
 ARCH := arm
-SYSDRV_CROSS_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
+SYSDRV_CROSS_BOOT_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
 endif
 
-ifeq ($(SYSDRV_CROSS),arm-rockchip1050-linux-uclibcgnueabihf)
-SYSDRV_LIB_TYPE := uclibc
+ifeq ($(SYSDRV_CROSS_BOOT),arm-rockchip1050-linux-uclibcgnueabihf)
+SYSDRV_LIB_TYPE_BOOT := uclibc
 ARCH := arm
-SYSDRV_CROSS_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
+SYSDRV_CROSS_BOOT_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
 endif
 
-ifeq ($(SYSDRV_CROSS),arm-rockchip830-linux-gnueabihf)
-SYSDRV_LIB_TYPE := glibc
+ifeq ($(SYSDRV_CROSS_BOOT),arm-rockchip830-linux-gnueabihf)
+SYSDRV_LIB_TYPE_BOOT := glibc
 ARCH := arm
-SYSDRV_CROSS_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
+SYSDRV_CROSS_BOOT_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
 endif
 
-ifeq ($(SYSDRV_CROSS),aarch64-rockchip1031-linux-gnu)
-SYSDRV_LIB_TYPE := glibc
+ifeq ($(SYSDRV_CROSS_BOOT),aarch64-rockchip1031-linux-gnu)
+SYSDRV_LIB_TYPE_BOOT := glibc
 ARCH := arm64
-SYSDRV_CROSS_CFLAGS += -mtune=cortex-a76.cortex-a55
+SYSDRV_CROSS_BOOT_CFLAGS += -mtune=cortex-a76.cortex-a55
 endif
+
+# Determine library type and flags for userspace toolchain
+ifeq ($(SYSDRV_CROSS_USERSPACE),arm-rockchip830-linux-uclibcgnueabihf)
+SYSDRV_LIB_TYPE_USERSPACE := uclibc
+SYSDRV_CROSS_USERSPACE_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
+endif
+
+ifeq ($(SYSDRV_CROSS_USERSPACE),arm-rockchip1050-linux-uclibcgnueabihf)
+SYSDRV_LIB_TYPE_USERSPACE := uclibc
+SYSDRV_CROSS_USERSPACE_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
+endif
+
+ifeq ($(SYSDRV_CROSS_USERSPACE),arm-rockchip830-linux-gnueabihf)
+SYSDRV_LIB_TYPE_USERSPACE := glibc
+SYSDRV_CROSS_USERSPACE_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
+endif
+
+ifeq ($(SYSDRV_CROSS_USERSPACE),aarch64-rockchip1031-linux-gnu)
+SYSDRV_LIB_TYPE_USERSPACE := glibc
+SYSDRV_CROSS_USERSPACE_CFLAGS += -mtune=cortex-a76.cortex-a55
+endif
+
+# Set primary LIB_TYPE based on userspace (for output directory naming)
+SYSDRV_LIB_TYPE := $(SYSDRV_LIB_TYPE_USERSPACE)
+
+# For backward compatibility, set SYSDRV_CROSS_CFLAGS to userspace flags
+SYSDRV_CROSS_CFLAGS := $(SYSDRV_CROSS_USERSPACE_CFLAGS)
 
 ifeq ($(SYSDRV_BUILD_RECOVERY),y)
 export SYSDRV_KERNEL_OBJS_OUTPUT_DIR := $(CURRENT_DIR)/source/objs_kernel_recovery
@@ -152,7 +213,7 @@ target_dir=$(shell if [ -d $(1) ]; then echo "$(1)" | sed 's/[[:space:]]//g'; el
 test -n "$$target_dir" && \
 	find "$$target_dir" -type f \( -perm /111 -o -name '*.so*' \) \
 		-not \( -name 'libpthread*.so*' -o -name 'ld-*.so*' -o -name '*.ko' \) -print0 | \
-		xargs -0 $(SYSDRV_CROSS)-strip 2>/dev/null || true
+		xargs -0 $(SYSDRV_CROSS_USERSPACE)-strip 2>/dev/null || true
 endef
 
 #
@@ -289,9 +350,15 @@ endef
 ######### }}}
 export ARCH
 export SYSDRV_CROSS
+export SYSDRV_CROSS_BOOT
+export SYSDRV_CROSS_USERSPACE
 export SYSDRV_CROSS_CFLAGS
+export SYSDRV_CROSS_BOOT_CFLAGS
+export SYSDRV_CROSS_USERSPACE_CFLAGS
 export SYSDRV_ARCH_TYPE=$(ARCH)
 export CROSS_COMPILE=$(SYSDRV_CROSS)-
+export CROSS_COMPILE_BOOT=$(SYSDRV_CROSS_BOOT)-
+export CROSS_COMPILE_USERSPACE=$(SYSDRV_CROSS_USERSPACE)-
 export KERNEL_DIR
 
 export SYSDRV_OPTS

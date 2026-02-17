@@ -9,6 +9,8 @@
 1. Updated Buildroot to version 2024.11.4 (from 2023.02.6) for improved compatibility and security.
 2. Added automated GitHub Actions build for RV1103_Luckfox_Pico_Mini with SPI_NAND on pull requests to main branch.
 3. Renumbered custom busybox patches to avoid conflicts with upstream buildroot patches.
+4. **Added dual toolchain support**: Now supports using separate toolchains for boot/kernel (uClibc) and userspace (glibc). See [DUAL_TOOLCHAIN.md](./DUAL_TOOLCHAIN.md) for details.
+
 ## SDK Usage Instructions
 * recommended operating system : Ubuntu 22.04 
 ### Installing Dependencies
@@ -21,10 +23,23 @@ git clone https://github.com/LuckfoxTECH/luckfox-pico.git
 ```
 ### Environment Variables
 * The cross-compilation toolchain needs to be set Environment Variables
-```
-cd {SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/
-source env_install_toolchain.sh
-```
+* **For dual toolchain setup** (boot with uClibc, userspace with glibc), you need to set up both toolchains:
+  ```bash
+  # Boot/Kernel toolchain (uClibc)
+  cd {SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/
+  source env_install_toolchain.sh
+  
+  # Userspace toolchain (glibc) - if using dual toolchain
+  cd {SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-gnueabihf/
+  source env_install_toolchain.sh
+  ```
+* **For single toolchain setup** (legacy, everything uses the same toolchain):
+  ```bash
+  cd {SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/
+  source env_install_toolchain.sh
+  ```
+* See [DUAL_TOOLCHAIN.md](./DUAL_TOOLCHAIN.md) for more information about dual toolchain configuration.
+* You can validate your toolchain configuration by running: `./validate_toolchains.sh`
 ### Get the SDK
 * GitHub
     ```

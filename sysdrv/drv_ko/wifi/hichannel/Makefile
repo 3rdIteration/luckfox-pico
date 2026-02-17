@@ -16,7 +16,7 @@ endif
 #CROSS_COMPILE ?= /home/xy/rk3588/prebuilts/gcc/linux-x86/aarch64/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu/bin/aarch64-rockchip1031-linux-gnu-
 
 ARCH=arm
-CROSS_COMPILE=arm-rockchip830-linux-uclibcgnueabihf-
+CROSS_COMPILE=arm-buildroot-linux-gnueabihf-
 
 ifneq ($(WIFI_RFKILL),)
 WLAN_CFLAGS += -DRFKILL_RK

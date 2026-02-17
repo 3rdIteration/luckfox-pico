@@ -249,11 +249,28 @@ ifeq ($(ARCH),arm64)
 KERNEL_DTB := $(SYSDRV_KERNEL_OBJS_OUTPUT_DIR)/arch/$(ARCH)/boot/dts/rockchip/$(KERNEL_DTS:dts=dtb)
 endif
 
-TOOLCHAIN_FILE := $(shell which $(SYSDRV_CROSS)-gcc )
-TOOLCHAIN_DIR := $(shell dirname $(shell dirname $(TOOLCHAIN_FILE)))
-RUNTIMELIB_DIR = $(shell dirname $(TOOLCHAIN_DIR))/$(RUNTIME_LIB)
-
+# Toolchain detection: buildroot internal toolchain takes precedence
 TOOLCHAIN_RUNTIME_LIB:=runtime_lib
+BUILDROOT_TOOLCHAIN_PATH := $(BUILDROOT_DIR)/$(BUILDROOT_VER)/output/host
+ifneq ($(wildcard $(BUILDROOT_TOOLCHAIN_PATH)/bin/$(SYSDRV_CROSS)-gcc),)
+    # Using buildroot's internal toolchain
+    TOOLCHAIN_FILE := $(BUILDROOT_TOOLCHAIN_PATH)/bin/$(SYSDRV_CROSS)-gcc
+    TOOLCHAIN_DIR := $(BUILDROOT_TOOLCHAIN_PATH)
+    TOOLCHAIN_RUNTIME_LIB_PATH := $(BUILDROOT_TOOLCHAIN_PATH)/$(SYSDRV_CROSS)/sysroot
+else
+    # Using external toolchain (fallback)
+    TOOLCHAIN_FILE := $(shell which $(SYSDRV_CROSS)-gcc 2>/dev/null)
+    ifeq ($(TOOLCHAIN_FILE),)
+        $(warning External toolchain $(SYSDRV_CROSS)-gcc not found in PATH)
+        $(warning Please ensure buildroot is built or toolchain is in PATH)
+        TOOLCHAIN_DIR :=
+        TOOLCHAIN_RUNTIME_LIB_PATH :=
+    else
+        TOOLCHAIN_DIR := $(shell dirname $(shell dirname $(TOOLCHAIN_FILE)))
+        RUNTIMELIB_DIR = $(shell dirname $(TOOLCHAIN_DIR))/$(RUNTIME_LIB)
+        TOOLCHAIN_RUNTIME_LIB_PATH := $(TOOLCHAIN_DIR)/$(TOOLCHAIN_RUNTIME_LIB)
+    endif
+endif
 
 RKBIN_DIR := $(SYSDRV_DIR)/source/uboot/rkbin
 UBOOT_DIR := $(SYSDRV_DIR)/source/uboot/u-boot
@@ -522,7 +539,35 @@ rootfs_prepare: prepare
 	rm -rf $(SYSDRV_DIR_OUT_ROOTFS)
 	mkdir -p $(SYSDRV_DIR_OUT_ROOTFS)
 	tar xf $(SYSDRV_DIR)/tools/board/rootfs_script.tar -C $(SYSDRV_DIR_OUT_ROOTFS)
-	tar xjf $(TOOLCHAIN_DIR)/$(TOOLCHAIN_RUNTIME_LIB)/$(TOOLCHAIN_RUNTIME_LIB_C) -C $(SYSDRV_DIR_OUT_ROOTFS)
+	# Extract runtime libraries based on toolchain type
+	@if [ -z "$(TOOLCHAIN_RUNTIME_LIB_PATH)" ]; then \
+		echo "Error: TOOLCHAIN_RUNTIME_LIB_PATH is not set. Please build buildroot first or install external toolchain."; \
+		exit 1; \
+	elif [ -f "$(TOOLCHAIN_RUNTIME_LIB_PATH)/$(TOOLCHAIN_RUNTIME_LIB_C)" ]; then \
+		echo "Using external toolchain runtime libraries from $(TOOLCHAIN_RUNTIME_LIB_PATH)..."; \
+		tar xjf $(TOOLCHAIN_RUNTIME_LIB_PATH)/$(TOOLCHAIN_RUNTIME_LIB_C) -C $(SYSDRV_DIR_OUT_ROOTFS); \
+	elif [ -d "$(TOOLCHAIN_RUNTIME_LIB_PATH)/lib" ]; then \
+		echo "Using buildroot internal toolchain runtime libraries from $(TOOLCHAIN_RUNTIME_LIB_PATH)..."; \
+		cp -a $(TOOLCHAIN_RUNTIME_LIB_PATH)/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/lib/ 2>/dev/null || true; \
+		cp -a $(TOOLCHAIN_RUNTIME_LIB_PATH)/usr/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/usr/lib/ 2>/dev/null || true; \
+	elif [ -d "$(BUILDROOT_DIR)/$(BUILDROOT_VER)" ] && [ ! -d "$(TOOLCHAIN_RUNTIME_LIB_PATH)/lib" ]; then \
+		echo "Buildroot sysroot incomplete - runtime libraries not yet available."; \
+		echo "Building buildroot to create runtime libraries..."; \
+		$(MAKE) buildroot; \
+		BR_SYSROOT="$(BUILDROOT_DIR)/$(BUILDROOT_VER)/output/host/$(SYSDRV_CROSS)/sysroot"; \
+		if [ -d "$$BR_SYSROOT/lib" ]; then \
+			echo "Using buildroot internal toolchain runtime libraries from $$BR_SYSROOT..."; \
+			cp -a $$BR_SYSROOT/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/lib/ 2>/dev/null || true; \
+			cp -a $$BR_SYSROOT/usr/lib/* $(SYSDRV_DIR_OUT_ROOTFS)/usr/lib/ 2>/dev/null || true; \
+		else \
+			echo "Error: buildroot built but runtime libraries still not found at $$BR_SYSROOT"; \
+			exit 1; \
+		fi; \
+	else \
+		echo "Error: No runtime libraries found at $(TOOLCHAIN_RUNTIME_LIB_PATH)"; \
+		echo "Please build buildroot with: make buildroot"; \
+		exit 1; \
+	fi
 	pushd $(SYSDRV_DIR_OUT_ROOTFS)/lib/ ; mv -fv \
 		libasan_preinit.o \
 		libasan.so* \
@@ -601,12 +646,10 @@ buildroot_create:
 	cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/
 	cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_w_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/
 	cp $(SYSDRV_DIR)/tools/board/buildroot/busybox.config $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/
-	cp ${HCITOOL_TOOL_PATH}/0001-Fixed-header-file-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/
-	cp ${HCITOOL_TOOL_PATH}/0002-Fix-build-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/
-	cp ${HCITOOL_TOOL_PATH}/0003-fix-compat-wordexp.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/
 	cp ${MPV_PATCH_PATH}/0002-change-j1.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/
 	cp ${BUSYBOX_PATCH_PATH}/0017-busybox-support-chinese-display-in-terminal.patch  $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/
 	cp ${BUSYBOX_PATCH_PATH}/0018-halt-Support-rebooting-with-arg.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/
+	cp -r $(SYSDRV_DIR)/tools/board/buildroot/package/libxcrypt $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/
 
 buildroot: prepare
 	@echo -e "$(C_GREEN) ==sysdrv== build buildroot   $(C_NORMAL)"
@@ -616,18 +659,16 @@ buildroot: prepare
 		cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/ ;\
 		cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_w_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/ ;\
 		cp $(SYSDRV_DIR)/tools/board/buildroot/busybox.config $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
-		cp ${HCITOOL_TOOL_PATH}/0001-Fixed-header-file-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/ ;\
-		cp ${HCITOOL_TOOL_PATH}/0002-Fix-build-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/ ;\
-		cp ${HCITOOL_TOOL_PATH}/0003-fix-compat-wordexp.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/ ;\
 		cp ${MPV_PATCH_PATH}/0002-change-j1.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/ ;\
 		cp ${BUSYBOX_PATCH_PATH}/0017-busybox-support-chinese-display-in-terminal.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
 		cp ${BUSYBOX_PATCH_PATH}/0018-halt-Support-rebooting-with-arg.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
+		cp -r $(SYSDRV_DIR)/tools/board/buildroot/package/libxcrypt $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/ ;\
 	);
 
-	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) $(BUILDROOT_DEFCONFIG) -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
+	$(MAKE) $(BUILDROOT_DEFCONFIG) -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
 	$(SYSDRV_DIR)/tools/board/mirror_select/buildroot_mirror_select.sh $(BUILDROOT_DIR)/$(BUILDROOT_VER)/.config
-	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) source -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
-	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -j$(SYSDRV_JOBS) -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
+	$(MAKE) source -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
+	$(MAKE) -j$(SYSDRV_JOBS) -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
 
 ifeq ($(SYSDRV_BUILD_RAMDISK_FLAG),YES)
     tar xf $(SYSDRV_DIR)/tools/board/rootfs_script.tar -C $(BUILDROOT_DIR)/$(BUILDROOT_VER)/output/target

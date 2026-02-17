@@ -8,7 +8,26 @@ WORK_DIR_TOP=$(cd `dirname $0` ; pwd)
 #./build.sh ta to compile TA with 32 bits
 
 TOOLCHAIN_PREBUILTS=$WORK_DIR_TOP/../../../../tools/linux/toolchain
-if [ -d "$TOOLCHAIN_PREBUILTS" ]; then
+# Check for buildroot internal toolchain first (try to detect version dynamically)
+BUILDROOT_BASE=$WORK_DIR_TOP/../../../../sysdrv/source/buildroot
+BUILDROOT_TOOLCHAIN=""
+if [ -d "$BUILDROOT_BASE" ]; then
+	# Find the buildroot directory (looking for buildroot-* pattern)
+	for dir in "$BUILDROOT_BASE"/buildroot-*/output/host/bin; do
+		if [ -d "$dir" ]; then
+			BUILDROOT_TOOLCHAIN=$(dirname "$dir")
+			break
+		fi
+	done
+fi
+
+if [ -n "$BUILDROOT_TOOLCHAIN" ] && [ -d "$BUILDROOT_TOOLCHAIN/bin" ]; then
+	TOOLCHAIN_PATH_ARM32=$BUILDROOT_TOOLCHAIN/bin/
+	TOOLCHAIN_PATH_AARCH64=$BUILDROOT_TOOLCHAIN/bin/
+	CROSS_COMPILE32=arm-buildroot-linux-gnueabihf-
+	CROSS_COMPILE64=aarch64-buildroot-linux-gnu-
+	export TOOLCHAIN_GLIBC=y
+elif [ -d "$TOOLCHAIN_PREBUILTS" ]; then
 	TOOLCHAIN_PATH_ARM32=$TOOLCHAIN_PREBUILTS/arm-rockchip830-linux-uclibcgnueabihf/bin/
 	TOOLCHAIN_PATH_AARCH64=$TOOLCHAIN_PREBUILTS/aarch64-rockchip830-linux-uclibcgnu/bin/
 	CROSS_COMPILE32=arm-rockchip830-linux-uclibcgnueabihf-

@@ -152,6 +152,8 @@ static int percpu_rwsem_wake_function(struct wait_queue_entry *wq_entry,
 	return !reader; /* wake (readers until) 1 writer */
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
 static void percpu_rwsem_wait(struct percpu_rw_semaphore *sem, bool reader)
 {
 	DEFINE_WAIT_FUNC(wq_entry, percpu_rwsem_wake_function);
@@ -177,6 +179,7 @@ static void percpu_rwsem_wait(struct percpu_rw_semaphore *sem, bool reader)
 	}
 	__set_current_state(TASK_RUNNING);
 }
+#pragma GCC diagnostic pop
 
 bool __percpu_down_read(struct percpu_rw_semaphore *sem, bool try)
 {

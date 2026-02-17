@@ -18,7 +18,7 @@ MAKEFLAGS +=-j$(shell nproc)
 
 ifeq ($(CONFIG_PLATFORM_ROCKCHIP), y)
 ARCH ?= arm
-CROSS_COMPILE ?= arm-rockchip830-linux-uclibcgnueabihf-
+CROSS_COMPILE ?= arm-buildroot-linux-gnueabihf-
 KDIR  := ../../../source/kernel
 ccflags-y += -DANDROID_PLATFORM
 ccflags-y += -DCONFIG_PLATFORM_ROCKCHIP

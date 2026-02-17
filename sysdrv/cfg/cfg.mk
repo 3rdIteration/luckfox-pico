@@ -1,7 +1,7 @@
 
 CONFIG_SYSDRV_CHIP:=rv1106
 
-CONFIG_SYSDRV_CROSS := arm-rockchip830-linux-uclibcgnueabihf
+CONFIG_SYSDRV_CROSS := arm-buildroot-linux-gnueabihf
 
 ################################################
 # Configure for emmc

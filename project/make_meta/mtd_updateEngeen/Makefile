@@ -4,7 +4,7 @@
 ifneq ($(RK_TOOLCHAIN_CROSS),)
 MTD_CROSS_COMPILER_PREFIX ?= $(RK_TOOLCHAIN_CROSS)-
 else
-MTD_CROSS_COMPILER_PREFIX ?= arm-rockchip830-linux-uclibcgnueabihf-
+MTD_CROSS_COMPILER_PREFIX ?= arm-buildroot-linux-gnueabihf-
 endif
 CC                    := $(MTD_CROSS_COMPILER_PREFIX)gcc
 CXX                   := $(MTD_CROSS_COMPILER_PREFIX)g++

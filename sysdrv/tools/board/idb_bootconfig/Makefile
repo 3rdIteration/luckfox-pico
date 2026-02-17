@@ -11,7 +11,7 @@ PKG_BIN := out
 
 PKG_CONF_OPTS += $(SYSDRV_CROSS_CFLAGS) -Os
 
-ifeq ($(SYSDRV_CROSS),arm-rockchip830-linux-uclibcgnueabihf)
+ifeq ($(SYSDRV_CROSS),arm-buildroot-linux-gnueabihf)
 PKG_CONF_OPTS += -DRV1106_RV1103
 PKG_TARGET := idb-bootconfig-build
 else

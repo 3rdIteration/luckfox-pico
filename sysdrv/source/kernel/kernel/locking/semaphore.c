@@ -201,6 +201,8 @@ struct semaphore_waiter {
  * constant, and thus optimised away by the compiler.  Likewise the
  * 'timeout' parameter for the cases without timeouts.
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
 static inline int __sched __down_common(struct semaphore *sem, long state,
 								long timeout)
 {
@@ -231,6 +233,7 @@ static inline int __sched __down_common(struct semaphore *sem, long state,
 	list_del(&waiter.list);
 	return -EINTR;
 }
+#pragma GCC diagnostic pop
 
 static noinline void __sched __down(struct semaphore *sem)
 {

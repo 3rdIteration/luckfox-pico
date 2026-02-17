@@ -63,7 +63,7 @@ install:
 	@echo "make PLATFORM_CROSS=$(platform)"
 	#$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KERNEL_DIR) M=$(shell pwd) modules -j12
 	$(MAKE) all -f $(MAKEFILE_SUB) ARCH=$(ARCH)  CROSS_COMPILE=$(CROSS_COMPILE) KDIR=$(KERNEL_DIR) SYS=$(sys) PLAT=$(platform) -j8 O=$(WIFI_BUILD_KERNEL_OBJ_DIR)
-	#arm-rockchip830-linux-uclibcgnueabihf-strip --strip-debug $(shell pwd)/driver_install/atbm603x_.ko
+	#arm-buildroot-linux-gnueabihf-strip --strip-debug $(shell pwd)/driver_install/atbm603x_.ko
 	cp $(shell pwd)/driver_install/atbm603x_wifi_usb.ko $(M_OUT_DIR)/atbm603x_.ko
 clean:
 	$(MAKE) -f $(MAKEFILE_SUB) KDIR=$(KERDIR) ARCH=$(arch) clean

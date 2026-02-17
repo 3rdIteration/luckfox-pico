@@ -687,6 +687,8 @@ static void clear_work_data(struct work_struct *work)
 	set_work_data(work, WORK_STRUCT_NO_POOL, 0);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
 static struct pool_workqueue *get_work_pwq(struct work_struct *work)
 {
 	unsigned long data = atomic_long_read(&work->data);
@@ -696,6 +698,7 @@ static struct pool_workqueue *get_work_pwq(struct work_struct *work)
 	else
 		return NULL;
 }
+#pragma GCC diagnostic pop
 
 /**
  * get_work_pool - return the worker_pool a given work was associated with
@@ -712,6 +715,8 @@ static struct pool_workqueue *get_work_pwq(struct work_struct *work)
  *
  * Return: The worker_pool @work was last associated with.  %NULL if none.
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
 static struct worker_pool *get_work_pool(struct work_struct *work)
 {
 	unsigned long data = atomic_long_read(&work->data);
@@ -729,6 +734,7 @@ static struct worker_pool *get_work_pool(struct work_struct *work)
 
 	return idr_find(&worker_pool_idr, pool_id);
 }
+#pragma GCC diagnostic pop
 
 /**
  * get_work_pool_id - return the worker pool ID a given work is associated with
@@ -737,6 +743,8 @@ static struct worker_pool *get_work_pool(struct work_struct *work)
  * Return: The worker_pool ID @work was last associated with.
  * %WORK_OFFQ_POOL_NONE if none.
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
 static int get_work_pool_id(struct work_struct *work)
 {
 	unsigned long data = atomic_long_read(&work->data);
@@ -747,6 +755,7 @@ static int get_work_pool_id(struct work_struct *work)
 
 	return data >> WORK_OFFQ_POOL_SHIFT;
 }
+#pragma GCC diagnostic pop
 
 static void mark_work_canceling(struct work_struct *work)
 {

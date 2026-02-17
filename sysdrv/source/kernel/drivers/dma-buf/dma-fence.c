@@ -726,6 +726,8 @@ dma_fence_default_wait_cb(struct dma_fence *fence, struct dma_fence_cb *cb)
  * returned if the fence is already signaled for consistency with other
  * functions taking a jiffies timeout.
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
 signed long
 dma_fence_default_wait(struct dma_fence *fence, bool intr, signed long timeout)
 {
@@ -777,6 +779,7 @@ out:
 	spin_unlock_irqrestore(fence->lock, flags);
 	return ret;
 }
+#pragma GCC diagnostic pop
 EXPORT_SYMBOL(dma_fence_default_wait);
 
 static bool

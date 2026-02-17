@@ -296,9 +296,18 @@ function select_toolchain()
 		TOOLCHAIN_ADDR2LINE=${CROSS_COMPILE_ARM32}addr2line
 	fi
 
+	# Check if toolchain is available
 	if [ ! `which ${TOOLCHAIN}gcc` ]; then
-		echo "ERROR: No find ${TOOLCHAIN}gcc"
-		exit 1
+		# Toolchain not found - check if it's a buildroot-based toolchain
+		if [[ "${TOOLCHAIN}" == *"buildroot"* ]]; then
+			# Buildroot toolchain - it's OK if not found yet, will be built during build process
+			echo "INFO: Buildroot internal toolchain not found yet."
+			echo "INFO: It will be built automatically during the build process."
+		else
+			# External toolchain - must be present
+			echo "ERROR: No find ${TOOLCHAIN}gcc"
+			exit 1
+		fi
 	fi
 
 	# save to CC_FILE

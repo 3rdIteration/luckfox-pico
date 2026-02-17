@@ -1,6 +1,18 @@
 
 CONFIG_SYSDRV_CHIP:=rv1106
 
+# Dual toolchain support:
+# - CONFIG_SYSDRV_CROSS_BOOT: Used for U-Boot and Linux kernel (uClibc)
+# - CONFIG_SYSDRV_CROSS_USERSPACE: Used for userspace applications (glibc)
+# For backward compatibility, CONFIG_SYSDRV_CROSS can still be used to set both
+
+# Boot toolchain (U-Boot and Kernel) - using uClibc
+CONFIG_SYSDRV_CROSS_BOOT := arm-rockchip830-linux-uclibcgnueabihf
+
+# Userspace toolchain (Busybox/Buildroot) - using glibc
+CONFIG_SYSDRV_CROSS_USERSPACE := arm-rockchip830-linux-gnueabihf
+
+# Legacy single toolchain (for backward compatibility, defaults to boot toolchain)
 CONFIG_SYSDRV_CROSS := arm-rockchip830-linux-uclibcgnueabihf
 
 ################################################

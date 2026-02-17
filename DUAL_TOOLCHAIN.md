@@ -12,9 +12,15 @@ This allows you to use a lightweight uClibc toolchain for boot and kernel compon
 
 ## Default Configuration
 
-By default, the build system is configured to use:
-- **Boot/Kernel**: `arm-rockchip830-linux-uclibcgnueabihf` (uClibc)
-- **Userspace**: `arm-rockchip830-linux-gnueabihf` (glibc)
+## Default Configuration
+
+**Important:** The repository includes only the uClibc toolchain. By default, both boot and userspace use this same toolchain:
+- **Boot/Kernel**: `arm-rockchip830-linux-uclibcgnueabihf` (uClibc) - included in repository
+- **Userspace**: `arm-rockchip830-linux-uclibcgnueabihf` (uClibc) - included in repository
+
+To use glibc for userspace applications, you must:
+1. Install a glibc toolchain separately (e.g., `arm-rockchip830-linux-gnueabihf`)
+2. Configure the build system to use it (see configuration examples below)
 
 This is configured in `sysdrv/cfg/cfg.mk`.
 
@@ -61,11 +67,11 @@ cd sysdrv
 make all
 ```
 
-This will use uClibc for boot/kernel and glibc for userspace.
+By default, both boot/kernel and userspace use the included uClibc toolchain.
 
-### Customizing Toolchains
+### Using glibc for Userspace
 
-You can customize toolchains in several ways:
+To use glibc for userspace (if you have it installed separately):
 
 #### 1. Edit Configuration File
 
@@ -73,7 +79,7 @@ Edit `sysdrv/cfg/cfg.mk`:
 
 ```makefile
 CONFIG_SYSDRV_CROSS_BOOT := arm-rockchip830-linux-uclibcgnueabihf
-CONFIG_SYSDRV_CROSS_USERSPACE := arm-rockchip830-linux-gnueabihf
+CONFIG_SYSDRV_CROSS_USERSPACE := arm-rockchip830-linux-gnueabihf  # Change to glibc
 ```
 
 #### 2. Environment Variables
@@ -82,7 +88,7 @@ Set environment variables before building:
 
 ```bash
 export RK_TOOLCHAIN_CROSS_BOOT=arm-rockchip830-linux-uclibcgnueabihf
-export RK_TOOLCHAIN_CROSS_USERSPACE=arm-rockchip830-linux-gnueabihf
+export RK_TOOLCHAIN_CROSS_USERSPACE=arm-rockchip830-linux-gnueabihf  # glibc toolchain
 cd sysdrv
 make all
 ```

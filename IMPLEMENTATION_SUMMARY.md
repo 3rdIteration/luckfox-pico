@@ -33,7 +33,9 @@ This document summarizes the changes made to enable dual toolchain support in th
 
 #### sysdrv/cfg/cfg.mk
 - Set default boot toolchain: `arm-rockchip830-linux-uclibcgnueabihf` (uClibc)
-- Set default userspace toolchain: `arm-rockchip830-linux-gnueabihf` (glibc)
+- Set default userspace toolchain: `arm-rockchip830-linux-uclibcgnueabihf` (uClibc - same as boot)
+- **Note**: Both default to uClibc since that's the only toolchain included in repository
+- Users can configure glibc for userspace if they install it separately
 - Maintained backward compatibility with `CONFIG_SYSDRV_CROSS`
 
 ### 3. Documentation

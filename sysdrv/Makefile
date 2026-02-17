@@ -649,6 +649,7 @@ buildroot_create:
 	cp ${MPV_PATCH_PATH}/0002-change-j1.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/
 	cp ${BUSYBOX_PATCH_PATH}/0017-busybox-support-chinese-display-in-terminal.patch  $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/
 	cp ${BUSYBOX_PATCH_PATH}/0018-halt-Support-rebooting-with-arg.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/
+	cp -r $(SYSDRV_DIR)/tools/board/buildroot/package/libxcrypt $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/
 
 buildroot: prepare
 	@echo -e "$(C_GREEN) ==sysdrv== build buildroot   $(C_NORMAL)"
@@ -661,6 +662,7 @@ buildroot: prepare
 		cp ${MPV_PATCH_PATH}/0002-change-j1.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/ ;\
 		cp ${BUSYBOX_PATCH_PATH}/0017-busybox-support-chinese-display-in-terminal.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
 		cp ${BUSYBOX_PATCH_PATH}/0018-halt-Support-rebooting-with-arg.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
+		cp -r $(SYSDRV_DIR)/tools/board/buildroot/package/libxcrypt $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/ ;\
 	);
 
 	$(MAKE) $(BUILDROOT_DEFCONFIG) -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 

@@ -1,22 +1,21 @@
 --- a/library/sysinfo.c
 +++ b/library/sysinfo.c
-@@ -93,6 +93,7 @@ PROCPS_EXPORT int procps_loadavg(
+@@ -93,19 +93,30 @@ PROCPS_EXPORT int procps_loadavg(
      FILE *fp;
      char *savelocale;
  
 +#if defined(__GLIBC__)
      locale_t tmplocale;
++#endif
  
      if (!(savelocale = setlocale(LC_NUMERIC, NULL)))
-@@ -102,10 +103,17 @@ PROCPS_EXPORT int procps_loadavg(
+         return -errno;
+     if (!setlocale(LC_NUMERIC, "C"))
+         return -errno;
  
++#if defined(__GLIBC__)
      tmplocale = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);
      uselocale(tmplocale);
-+#else
-+    /* Fallback for C libraries without locale_t support (e.g., uClibc) */
-+    if (!(savelocale = setlocale(LC_NUMERIC, NULL)))
-+        return -errno;
-+    setlocale(LC_NUMERIC, "C");
 +#endif
  
      if (!(fp = fopen(LOADAVG_FILE, "r")))
@@ -30,3 +29,4 @@
 +#endif
      setlocale(LC_NUMERIC, savelocale);
  
+

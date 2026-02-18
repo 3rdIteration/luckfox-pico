@@ -1,6 +1,10 @@
 --- a/library/sysinfo.c
 +++ b/library/sysinfo.c
-@@ -91,10 +91,12 @@ PROCPS_EXPORT int procps_loadavg(
+@@ -88,12 +88,16 @@
+     return 0;
+ }
+ 
+ PROCPS_EXPORT int procps_loadavg(
      double *restrict av1,
      double *restrict av5,
      double *restrict av15) {
@@ -13,7 +17,7 @@
  
      if (!(savelocale = setlocale(LC_NUMERIC, NULL)))
          return -errno;
-@@ -102,6 +104,8 @@ PROCPS_EXPORT int procps_loadavg(
+@@ -101,12 +105,16 @@
          return -errno;
  
 +#if defined(__GLIBC__)
@@ -23,7 +27,6 @@
  
      if (!(fp = fopen(LOADAVG_FILE, "r")))
          return -errno;
-@@ -110,8 +114,10 @@ PROCPS_EXPORT int procps_loadavg(
      fscanf(fp, "%f %f %f", &av1, &av5, &av15);
      fclose(fp);
  

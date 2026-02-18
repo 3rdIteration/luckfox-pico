@@ -6,21 +6,22 @@
  
 +#if defined(__GLIBC__)
      locale_t tmplocale;
++#endif
  
      if (!(savelocale = setlocale(LC_NUMERIC, NULL)))
-@@ -102,10 +103,17 @@ PROCPS_EXPORT int procps_loadavg(
+         return -errno;
+@@ -100,8 +101,10 @@ PROCPS_EXPORT int procps_loadavg(
+     if (!setlocale(LC_NUMERIC, "C"))
+         return -errno;
  
++#if defined(__GLIBC__)
      tmplocale = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);
      uselocale(tmplocale);
-+#else
-+    if (!(savelocale = setlocale(LC_NUMERIC, NULL)))
-+        return -errno;
-+    if (!setlocale(LC_NUMERIC, "C"))
-+        return -errno;
 +#endif
  
      if (!(fp = fopen(LOADAVG_FILE, "r")))
          return -errno;
+@@ -109,8 +112,10 @@ PROCPS_EXPORT int procps_loadavg(
      fscanf(fp, "%f %f %f", &av1, &av5, &av15);
      fclose(fp);
  

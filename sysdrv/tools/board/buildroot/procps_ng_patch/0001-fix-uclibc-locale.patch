@@ -19,7 +19,8 @@
 +#endif
  
      if (!(fp = fopen(LOADAVG_FILE, "r")))
-@@ -110,6 +114,8 @@ PROCPS_EXPORT int procps_loadavg(
+         return -errno;
+@@ -110,8 +114,10 @@ PROCPS_EXPORT int procps_loadavg(
      fscanf(fp, "%f %f %f", &av1, &av5, &av15);
      fclose(fp);
  

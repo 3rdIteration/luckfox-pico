@@ -1,6 +1,9 @@
 --- a/library/sysinfo.c
 +++ b/library/sysinfo.c
-@@ -94,7 +94,9 @@ PROCPS_EXPORT int procps_loadavg(
+@@ -91,10 +91,12 @@ PROCPS_EXPORT int procps_loadavg(
+     double *restrict av1,
+     double *restrict av5,
+     double *restrict av15) {
      FILE *fp;
      char *savelocale;
  

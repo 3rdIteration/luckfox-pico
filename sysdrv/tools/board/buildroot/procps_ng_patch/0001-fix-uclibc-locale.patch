@@ -4,7 +4,7 @@
          double *restrict av15)
  {
      double avg_1=0, avg_5=0, avg_15=0;
-+#if defined(__GLIBC__)
++#if defined(__GLIBC__) && !defined(__UCLIBC__)
      locale_t tmplocale;
 +#endif
      int retval=0;
@@ -13,7 +13,7 @@
 @@ -101,13 +103,17 @@ PROCPS_EXPORT int procps_loadavg(
          return -errno;
  
-+#if defined(__GLIBC__)
++#if defined(__GLIBC__) && !defined(__UCLIBC__)
      tmplocale = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);
      uselocale(tmplocale);
 +#endif
@@ -21,7 +21,7 @@
          retval = -ERANGE;
  
      fclose(fp);
-+#if defined(__GLIBC__)
++#if defined(__GLIBC__) && !defined(__UCLIBC__)
      uselocale(LC_GLOBAL_LOCALE);
      freelocale(tmplocale);
 +#endif

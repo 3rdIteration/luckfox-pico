@@ -1,40 +1,30 @@
 --- a/library/sysinfo.c
 +++ b/library/sysinfo.c
-@@ -87,20 +87,24 @@ PROCPS_EXPORT int procps_uptime(
-     return 0;
- }
- 
- PROCPS_EXPORT int procps_loadavg(
-     double *restrict av1,
-     double *restrict av5,
-     double *restrict av15) {
-     FILE *fp;
-     char *savelocale;
- 
+@@ -93,7 +93,9 @@ PROCPS_EXPORT int procps_loadavg(
+         double *restrict av15)
+ {
+     double avg_1=0, avg_5=0, avg_15=0;
 +#if defined(__GLIBC__)
      locale_t tmplocale;
 +#endif
+     int retval=0;
+     FILE *fp;
  
-     if (!(savelocale = setlocale(LC_NUMERIC, NULL)))
-         return -errno;
-     if (!setlocale(LC_NUMERIC, "C"))
+@@ -101,13 +103,17 @@ PROCPS_EXPORT int procps_loadavg(
          return -errno;
  
 +#if defined(__GLIBC__)
      tmplocale = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);
      uselocale(tmplocale);
 +#endif
+     if (fscanf(fp, "%lf %lf %lf", &avg_1, &avg_5, &avg_15) < 3)
+         retval = -ERANGE;
  
-     if (!(fp = fopen(LOADAVG_FILE, "r")))
-         return -errno;
-@@ -108,8 +112,10 @@ PROCPS_EXPORT int procps_loadavg(
-     fscanf(fp, "%f %f %f", &av1, &av5, &av15);
      fclose(fp);
- 
 +#if defined(__GLIBC__)
      uselocale(LC_GLOBAL_LOCALE);
      freelocale(tmplocale);
 +#endif
-     setlocale(LC_NUMERIC, savelocale);
- 
-     return 0;
+     SET_IF_DESIRED(av1,  avg_1);
+     SET_IF_DESIRED(av5,  avg_5);
+     SET_IF_DESIRED(av15, avg_15);

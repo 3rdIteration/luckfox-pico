@@ -314,6 +314,7 @@ HCITOOL_TOOL_PATH :=$(SYSDRV_DIR)/tools/board/buildroot/hcitool_patch
 MPV_PATCH_PATH :=$(SYSDRV_DIR)/tools/board/buildroot/mpv_patch
 BUSYBOX_PATCH_PATH :=$(SYSDRV_DIR)/tools/board/buildroot/busybox_patch
 PROCPS_NG_PATCH_PATH :=$(SYSDRV_DIR)/tools/board/buildroot/procps_ng_patch
+SAMBA4_PATCH_PATH :=$(SYSDRV_DIR)/tools/board/buildroot/samba4_patch
 
 export SYSDRV_DIR_OUT_PC
 export SYSDRV_DIR_OUT_BOARD
@@ -609,6 +610,7 @@ buildroot_create:
 	cp ${BUSYBOX_PATCH_PATH}/0017-busybox-support-chinese-display-in-terminal.patch  $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/
 	cp ${BUSYBOX_PATCH_PATH}/0018-halt-Support-rebooting-with-arg.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/
 	cp ${PROCPS_NG_PATCH_PATH}/0001-fix-uclibc-locale.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/procps-ng/
+	cp ${SAMBA4_PATCH_PATH}/0003-popt-use-secure_getenv-fallback-for-uclibc.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/samba4/
 
 buildroot: prepare
 	@echo -e "$(C_GREEN) ==sysdrv== build buildroot   $(C_NORMAL)"
@@ -625,6 +627,7 @@ buildroot: prepare
 		cp ${BUSYBOX_PATCH_PATH}/0017-busybox-support-chinese-display-in-terminal.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
 		cp ${BUSYBOX_PATCH_PATH}/0018-halt-Support-rebooting-with-arg.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
 		cp ${PROCPS_NG_PATCH_PATH}/0001-fix-uclibc-locale.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/procps-ng/ ;\
+		cp ${SAMBA4_PATCH_PATH}/0003-popt-use-secure_getenv-fallback-for-uclibc.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/samba4/ ;\
 	);
 
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) $(BUILDROOT_DEFCONFIG) -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 

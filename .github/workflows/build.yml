@@ -54,8 +54,8 @@ jobs:
           # Map hardware and boot medium to board config
           # For PR builds, use default values; for manual builds, use inputs
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            HARDWARE="RV1103_Luckfox_Pico_Mini"
-            BOOT_MEDIUM="SPI_NAND"
+            HARDWARE="RV1106_Luckfox_Pico_Pi"
+            BOOT_MEDIUM="EMMC"
             echo "PR build detected - using default: $HARDWARE with $BOOT_MEDIUM"
           else
             HARDWARE="${{ inputs.hardware_type }}"
@@ -86,7 +86,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: luckfox-pico-${{ github.event_name == 'pull_request' && 'RV1103_Luckfox_Pico_Mini-SPI_NAND' || format('{0}-{1}', inputs.hardware_type, inputs.boot_medium) }}
+          name: luckfox-pico-${{ github.event_name == 'pull_request' && 'RV1106_Luckfox_Pico_Pi-EMMC' || format('{0}-{1}', inputs.hardware_type, inputs.boot_medium) }}
           path: |
             output/image/*
           retention-days: 7

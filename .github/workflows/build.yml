@@ -80,7 +80,26 @@ jobs:
 
       - name: Build
         run: |
-          ./build.sh all
+          set -euo pipefail
+          max_attempts=2
+          attempt=1
+
+          until [ "$attempt" -gt "$max_attempts" ]; do
+            echo "Build attempt ${attempt}/${max_attempts}"
+            if ./build.sh all; then
+              echo "Build succeeded on attempt ${attempt}"
+              exit 0
+            fi
+
+            if [ "$attempt" -eq "$max_attempts" ]; then
+              echo "Build failed after ${max_attempts} attempts"
+              exit 1
+            fi
+
+            echo "Build failed on attempt ${attempt}; cleaning buildroot output before retry"
+            rm -rf sysdrv/source/buildroot/buildroot-2024.11.4/output/build
+            attempt=$((attempt + 1))
+          done
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

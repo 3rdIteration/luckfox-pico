@@ -1,0 +1,16 @@
+Fix Python 3.12 compatibility in wscript
+
+Python 3.12 no longer accepts type='string' in argparse.
+Change to type=str to fix compatibility.
+
+--- a/wscript
++++ b/wscript
+@@ -938,7 +938,7 @@ def options(opt):
+             group.add_option('--{0}'.format(ident),
+                              action = option['action'],
+                              dest   = ident,
+-                             type   = option['type'])
++                             type   = str if option.get('type') == 'string' else option.get('type'))
+ 
+     group.add_option('--lua',
+                      action = 'store',

@@ -605,6 +605,7 @@ buildroot_create:
 	cp ${HCITOOL_TOOL_PATH}/0001-Fixed-header-file-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/
 	cp ${HCITOOL_TOOL_PATH}/0002-Fix-build-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/
 	cp ${HCITOOL_TOOL_PATH}/0003-fix-compat-wordexp.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/
+	cp ${MPV_PATCH_PATH}/0001-fix-python-3.12-compatibility.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/
 	cp ${MPV_PATCH_PATH}/0002-change-j1.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/
 	cp ${BUSYBOX_PATCH_PATH}/0017-busybox-support-chinese-display-in-terminal.patch  $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/
 	cp ${BUSYBOX_PATCH_PATH}/0018-halt-Support-rebooting-with-arg.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/
@@ -621,6 +622,7 @@ buildroot: prepare
 		cp ${HCITOOL_TOOL_PATH}/0001-Fixed-header-file-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/ ;\
 		cp ${HCITOOL_TOOL_PATH}/0002-Fix-build-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/ ;\
 		cp ${HCITOOL_TOOL_PATH}/0003-fix-compat-wordexp.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/ ;\
+		cp ${MPV_PATCH_PATH}/0001-fix-python-3.12-compatibility.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/ ;\
 		cp ${MPV_PATCH_PATH}/0002-change-j1.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/ ;\
 		cp ${BUSYBOX_PATCH_PATH}/0017-busybox-support-chinese-display-in-terminal.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
 		cp ${BUSYBOX_PATCH_PATH}/0018-halt-Support-rebooting-with-arg.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\

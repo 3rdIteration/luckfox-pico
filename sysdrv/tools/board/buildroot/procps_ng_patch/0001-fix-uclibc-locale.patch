@@ -1,6 +1,6 @@
 --- a/library/sysinfo.c
 +++ b/library/sysinfo.c
-@@ -93,7 +93,6 @@ PROCPS_EXPORT int procps_loadavg(
+@@ -93,21 +93,16 @@ PROCPS_EXPORT int procps_loadavg(
          double *restrict av15)
  {
      double avg_1=0, avg_5=0, avg_15=0;
@@ -8,8 +8,7 @@
      int retval=0;
      FILE *fp;
  
-@@ -101,13 +100,9 @@ PROCPS_EXPORT int procps_loadavg(
-     if (fp == NULL)
+     if ((fp = fopen(LOADAVG_FILE, "r")) == NULL)
          return -errno;
  
 -    tmplocale = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);

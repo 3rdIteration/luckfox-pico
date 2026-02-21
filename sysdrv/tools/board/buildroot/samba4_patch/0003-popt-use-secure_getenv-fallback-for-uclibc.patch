@@ -1,0 +1,11 @@
+--- a/third_party/popt/system.h
++++ b/third_party/popt/system.h
+@@ -93,6 +93,8 @@
+ 
+ #if defined(HAVE___SECURE_GETENV) && !defined(__LCLINT__)
+ #define	getenv(_s)	__secure_getenv(_s)
++#elif defined(HAVE_SECURE_GETENV) && !defined(__LCLINT__)
++#define	getenv(_s)	secure_getenv(_s)
+ #endif
+ 
+ #if !defined(__GNUC__) && !defined(__attribute__)

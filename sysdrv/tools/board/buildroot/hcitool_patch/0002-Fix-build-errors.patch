@@ -10,15 +10,14 @@
  #include <stdio.h>
  #include <errno.h>
  #include <syslog.h>
-@@ -24,6 +27,10 @@
- #include <sys/signalfd.h>
+@@ -25,6 +28,9 @@
  #include <android/compat/wordexp.h>
  #include <getopt.h>
+ #include <fcntl.h>
 +#include <stdint.h>
 +#include <string.h>
-+#include <fcntl.h>
 +#include <paths.h>
-
+ 
  #include <readline/readline.h>
  #include <readline/history.h>
 @@ -46,6 +53,11 @@
@@ -54,9 +53,10 @@
  static void cmd_version(int argc, char *argv[])
  {
 	bt_shell_printf("Version %s\n", VERSION);
-@@ -1416,3 +1442,367 @@
-
-	return env->value;
+@@ -1696,4 +1721,368 @@
+ int bt_shell_get_timeout(void)
+ {
+ 	return data.timeout;
  }
 +
 +

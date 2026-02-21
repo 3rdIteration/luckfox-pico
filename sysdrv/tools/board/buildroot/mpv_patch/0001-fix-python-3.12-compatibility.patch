@@ -1,18 +1,8 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: buildroot <buildroot@buildroot.org>
-Date: Thu, 20 Feb 2026 23:52:00 +0000
-Subject: [PATCH] Fix Python 3.12 compatibility in wscript
+Fix Python 3.12 compatibility in wscript
 
 Python 3.12 no longer accepts type='string' in argparse.
 Change to type=str to fix compatibility.
 
-Signed-off-by: buildroot <buildroot@buildroot.org>
----
- wscript | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/wscript b/wscript
-index 1234567..abcdefg 100644
 --- a/wscript
 +++ b/wscript
 @@ -935,10 +935,13 @@ def options(opt):
@@ -31,6 +21,3 @@ index 1234567..abcdefg 100644
  
      group.add_option('--lua',
                       action = 'store',
--- 
-2.45.2
-

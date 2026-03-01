@@ -168,6 +168,12 @@
 				remote-endpoint = <&sc401ai_out>;
 				data-lanes = <1 2>;
 			};
+
+			csi_dphy_input6: endpoint@6 {
+				reg = <6>;
+				remote-endpoint = <&ov5645_out>;
+				data-lanes = <1 2>;
+			};
 		};
 
 		port@1 {
@@ -310,6 +316,24 @@
 		port {
 			sc401ai_out: endpoint {
 				remote-endpoint = <&csi_dphy_input5>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+
+	ov5645: ov5645@3c {
+		compatible = "ovti,ov5645";
+		status = "okay";
+		reg = <0x3c>;
+		clocks = <&cru MCLK_REF_MIPI0>;
+		clock-names = "xclk";
+		clock-frequency = <24000000>;
+		enable-gpios = <&gpio3 RK_PC5 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mipi_refclk_out0>;
+		port {
+			ov5645_out: endpoint {
+				remote-endpoint = <&csi_dphy_input6>;
 				data-lanes = <1 2>;
 			};
 		};

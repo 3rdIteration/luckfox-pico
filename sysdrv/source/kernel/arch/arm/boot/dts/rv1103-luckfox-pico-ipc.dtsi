@@ -150,6 +150,36 @@
 				remote-endpoint = <&sc530ai_out>;
 				data-lanes = <1 2>;
 			};
+
+			csi_dphy_input3: endpoint@3 {
+				reg = <3>;
+				remote-endpoint = <&sc3338_out>;
+				data-lanes = <1 2>;
+			};
+
+			csi_dphy_input4: endpoint@4 {
+				reg = <4>;
+				remote-endpoint = <&sc200ai_out>;
+				data-lanes = <1 2>;
+			};
+
+			csi_dphy_input5: endpoint@5 {
+				reg = <5>;
+				remote-endpoint = <&sc401ai_out>;
+				data-lanes = <1 2>;
+			};
+
+			csi_dphy_input6: endpoint@6 {
+				reg = <6>;
+				remote-endpoint = <&ov5645_out>;
+				data-lanes = <1 2>;
+			};
+
+			csi_dphy_input7: endpoint@7 {
+				reg = <7>;
+				remote-endpoint = <&ov5640_out>;
+				data-lanes = <1 2>;
+			};
 		};
 
 		port@1 {
@@ -229,6 +259,105 @@
 		port {
 			sc530ai_out: endpoint {
 				remote-endpoint = <&csi_dphy_input2>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+
+	sc3338: sc3338@30 {
+		compatible = "smartsens,sc3338";
+		status = "okay";
+		reg = <0x30>;
+		clocks = <&cru MCLK_REF_MIPI0>;
+		clock-names = "xvclk";
+		pwdn-gpios = <&gpio3 RK_PC5 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mipi_refclk_out0>;
+		rockchip,camera-module-index = <0>;
+		rockchip,camera-module-facing = "back";
+		rockchip,camera-module-name = "FKO1";
+		rockchip,camera-module-lens-name = "30IRC-F16";
+		port {
+			sc3338_out: endpoint {
+				remote-endpoint = <&csi_dphy_input3>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+
+	sc200ai: sc200ai@30 {
+		compatible = "smartsens,sc200ai";
+		status = "okay";
+		reg = <0x30>;
+		clocks = <&cru MCLK_REF_MIPI0>;
+		clock-names = "xvclk";
+		pwdn-gpios = <&gpio3 RK_PC5 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mipi_refclk_out0>;
+		rockchip,camera-module-index = <0>;
+		rockchip,camera-module-facing = "back";
+		rockchip,camera-module-name = "CMK-OT2115-PC1";
+		rockchip,camera-module-lens-name = "30IRC-F16";
+		port {
+			sc200ai_out: endpoint {
+				remote-endpoint = <&csi_dphy_input4>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+
+	sc401ai: sc401ai@30 {
+		compatible = "smartsens,sc401ai";
+		status = "okay";
+		reg = <0x30>;
+		clocks = <&cru MCLK_REF_MIPI0>;
+		clock-names = "xvclk";
+		pwdn-gpios = <&gpio3 RK_PC5 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mipi_refclk_out0>;
+		rockchip,camera-module-index = <0>;
+		rockchip,camera-module-facing = "back";
+		rockchip,camera-module-name = "CMK-OT2117-PC1";
+		rockchip,camera-module-lens-name = "30IRC-F16";
+		port {
+			sc401ai_out: endpoint {
+				remote-endpoint = <&csi_dphy_input5>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+
+	ov5645: ov5645@3c {
+		compatible = "ovti,ov5645";
+		status = "okay";
+		reg = <0x3c>;
+		clocks = <&cru MCLK_REF_MIPI0>;
+		clock-names = "xclk";
+		clock-frequency = <24000000>;
+		enable-gpios = <&gpio3 RK_PC5 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mipi_refclk_out0>;
+		port {
+			ov5645_out: endpoint {
+				remote-endpoint = <&csi_dphy_input6>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+
+	ov5640: ov5640@3c {
+		compatible = "ovti,ov5640";
+		status = "okay";
+		reg = <0x3c>;
+		clocks = <&cru MCLK_REF_MIPI0>;
+		clock-names = "xclk";
+		clock-frequency = <24000000>;
+		powerdown-gpios = <&gpio3 RK_PC5 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mipi_refclk_out0>;
+		port {
+			ov5640_out: endpoint {
+				remote-endpoint = <&csi_dphy_input7>;
 				data-lanes = <1 2>;
 			};
 		};

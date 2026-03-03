@@ -157,13 +157,17 @@ static int rockchip_gpio_set_direction(struct gpio_chip *chip,
 	struct rockchip_pin_bank *bank = gpiochip_get_data(chip);
 	unsigned long flags;
 	u32 data = input ? 0 : 1;
+	int ret;
 
 	raw_spin_lock_irqsave(&bank->slock, flags);
 	rockchip_gpio_writel_bit(bank, offset, data, bank->gpio_regs->port_ddr);
 	raw_spin_unlock_irqrestore(&bank->slock, flags);
 
-	if (input)
-		rockchip_set_ie(bank, offset, 1);
+	if (input) {
+		ret = rockchip_set_ie(bank, offset, 1);
+		if (ret)
+			return ret;
+	}
 
 	return 0;
 }

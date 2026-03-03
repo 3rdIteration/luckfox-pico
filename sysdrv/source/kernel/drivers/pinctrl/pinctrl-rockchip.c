@@ -1622,7 +1622,7 @@ static int rv1106_calc_ie_reg_and_bit(struct rockchip_pin_bank *bank,
 
 	default:
 		dev_err(info->dev, "unsupported bank_num %d\n", bank->bank_num);
-		break;
+		return -EINVAL;
 	}
 
 	*reg += ((pin_num / RV1106_IE_PINS_PER_REG) * 4);
@@ -3436,6 +3436,9 @@ static int rockchip_get_ie(struct rockchip_pin_bank *bank, int pin_num)
 	int reg, ret;
 	u8 bit;
 	u32 data;
+
+	if (!ctrl->ie_calc_reg)
+		return -ENOTSUPP;
 
 	ret = ctrl->ie_calc_reg(bank, pin_num, &regmap, &reg, &bit);
 	if (ret)

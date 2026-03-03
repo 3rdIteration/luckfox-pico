@@ -588,3 +588,53 @@ and uses the correct pin map. You can also force a variant with `--variant FOX_P
   so their mux assignments do not conflict with button GPIO pins at boot
 - The DHT11 device node (present on Pro Max and Mini) uses GPIO1_C7 with `pcfg_pull_none`;
   since the DHT11 driver is not built for SeedSigner, the hog pull-up takes precedence
+
+---
+
+## python-periphery Pull-Up Mode Support
+
+### Background
+
+python-periphery's `GPIO` class supports a `bias` parameter:
+
+```python
+from periphery import GPIO
+btn = GPIO("/dev/gpiochip0", 0, "in", bias="pull_up")
+```
+
+This uses the Linux GPIO chardev v2 interface (`GPIO_V2_LINE_FLAG_BIAS_PULL_UP`), which calls
+the GPIO driver's `set_config` callback with `PIN_CONFIG_BIAS_PULL_UP`.
+
+### The Problem (before this fix)
+
+The Rockchip GPIO driver (`gpio-rockchip.c`) only handled `PIN_CONFIG_INPUT_DEBOUNCE` in its
+`set_config` callback. All other config params — including bias — returned `-ENOTSUPP`. This
+meant python-periphery's `bias="pull_up"` silently failed to set the pull register.
+
+The pull-ups only worked because of the DT `pcfg_pull_up_ie` hog entries, which set pull-up
+at kernel boot before any userspace runs.
+
+### The Fix
+
+The `rockchip_gpio_set_config()` function now routes bias config requests to
+`gpiochip_generic_config()`, which calls `pinctrl_gpio_set_config()` to reach the
+`rockchip_pinconf_set()` function in the pinctrl driver. This follows the same pattern used
+by `gpio-omap.c` in the mainline kernel:
+
+```c
+case PIN_CONFIG_BIAS_DISABLE:
+case PIN_CONFIG_BIAS_PULL_UP:
+case PIN_CONFIG_BIAS_PULL_DOWN:
+    return gpiochip_generic_config(gc, offset, config);
+```
+
+### What This Means
+
+1. **python-periphery `bias="pull_up"` now works natively** — the pull-up IOC register is
+   set at runtime when the GPIO line is opened
+2. **The DT hog entries are still recommended** — they ensure pull-ups are active from
+   boot, before any userspace process runs, which prevents brief LOW glitches during boot
+3. **`bias="pull_down"` and `bias="disable"` also work** — full bias control is available
+4. **Input Enable (IE) is still only set by the DT** — the `pcfg_pull_up_ie` DT entries
+   set both pull-up AND input-enable at boot; runtime bias changes only affect the pull
+   register, not the IE register (IE is already set by the DT hog)

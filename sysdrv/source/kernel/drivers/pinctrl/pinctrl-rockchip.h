@@ -416,6 +416,9 @@ struct rockchip_pin_ctrl {
 	int	(*slew_rate_calc_reg)(struct rockchip_pin_bank *bank,
 				      int pin_num, struct regmap **regmap,
 				      int *reg, u8 *bit);
+	int	(*ie_calc_reg)(struct rockchip_pin_bank *bank,
+			       int pin_num, struct regmap **regmap,
+			       int *reg, u8 *bit);
 };
 
 struct rockchip_pin_config {
@@ -477,6 +480,7 @@ struct rockchip_pinctrl {
 #if IS_ENABLED(CONFIG_PINCTRL_ROCKCHIP)
 int rk_iomux_set(int bank, int pin, int mux);
 int rk_iomux_get(int bank, int pin, int *mux);
+int rockchip_set_ie(struct rockchip_pin_bank *bank, int pin_num, int enable);
 #else
 static inline int rk_iomux_set(int bank, int pin, int mux)
 {
@@ -486,6 +490,12 @@ static inline int rk_iomux_set(int bank, int pin, int mux)
 static inline int rk_iomux_get(int bank, int pin, int *mux)
 {
 	return -EINVAL;
+}
+
+static inline int rockchip_set_ie(struct rockchip_pin_bank *bank,
+				  int pin_num, int enable)
+{
+	return 0;
 }
 #endif
 

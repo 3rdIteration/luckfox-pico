@@ -1578,6 +1578,60 @@ static int rv1106_calc_schmitt_reg_and_bit(struct rockchip_pin_bank *bank,
 	return 0;
 }
 
+#define RV1106_IE_BITS_PER_PIN		1
+#define RV1106_IE_PINS_PER_REG		8
+#define RV1106_IE_GPIO0_OFFSET		0x3C
+#define RV1106_IE_GPIO1_OFFSET		0x200
+#define RV1106_IE_GPIO2_OFFSET		0x10210
+#define RV1106_IE_GPIO3_OFFSET		0x20220
+#define RV1106_IE_GPIO4_OFFSET		0x30080
+
+static int rv1106_calc_ie_reg_and_bit(struct rockchip_pin_bank *bank,
+				      int pin_num,
+				      struct regmap **regmap,
+				      int *reg, u8 *bit)
+{
+	struct rockchip_pinctrl *info = bank->drvdata;
+
+	/* GPIO0_IOC is located in PMU */
+	switch (bank->bank_num) {
+	case 0:
+		*regmap = info->regmap_pmu;
+		*reg = RV1106_IE_GPIO0_OFFSET;
+		break;
+
+	case 1:
+		*regmap = info->regmap_base;
+		*reg = RV1106_IE_GPIO1_OFFSET;
+		break;
+
+	case 2:
+		*regmap = info->regmap_base;
+		*reg = RV1106_IE_GPIO2_OFFSET;
+		break;
+
+	case 3:
+		*regmap = info->regmap_base;
+		*reg = RV1106_IE_GPIO3_OFFSET;
+		break;
+
+	case 4:
+		*regmap = info->regmap_base;
+		*reg = RV1106_IE_GPIO4_OFFSET;
+		break;
+
+	default:
+		dev_err(info->dev, "unsupported bank_num %d\n", bank->bank_num);
+		break;
+	}
+
+	*reg += ((pin_num / RV1106_IE_PINS_PER_REG) * 4);
+	*bit = pin_num % RV1106_IE_PINS_PER_REG;
+	*bit *= RV1106_IE_BITS_PER_PIN;
+
+	return 0;
+}
+
 #define RV1108_PULL_PMU_OFFSET		0x10
 #define RV1108_PULL_OFFSET		0x110
 #define RV1108_PULL_PINS_PER_REG	8
@@ -3374,6 +3428,56 @@ static int rockchip_set_schmitt(struct rockchip_pin_bank *bank,
 	return regmap_update_bits(regmap, reg, rmask, data);
 }
 
+static int rockchip_get_ie(struct rockchip_pin_bank *bank, int pin_num)
+{
+	struct rockchip_pinctrl *info = bank->drvdata;
+	struct rockchip_pin_ctrl *ctrl = info->ctrl;
+	struct regmap *regmap;
+	int reg, ret;
+	u8 bit;
+	u32 data;
+
+	ret = ctrl->ie_calc_reg(bank, pin_num, &regmap, &reg, &bit);
+	if (ret)
+		return ret;
+
+	ret = regmap_read(regmap, reg, &data);
+	if (ret)
+		return ret;
+
+	data >>= bit;
+
+	return data & 0x1;
+}
+
+int rockchip_set_ie(struct rockchip_pin_bank *bank, int pin_num, int enable)
+{
+	struct rockchip_pinctrl *info = bank->drvdata;
+	struct rockchip_pin_ctrl *ctrl = info->ctrl;
+	struct device *dev = info->dev;
+	struct regmap *regmap;
+	int reg, ret;
+	u8 bit;
+	u32 data, rmask;
+
+	if (!ctrl->ie_calc_reg)
+		return 0;
+
+	dev_dbg(dev, "setting input enable of GPIO%d-%d to %d\n",
+		bank->bank_num, pin_num, enable);
+
+	ret = ctrl->ie_calc_reg(bank, pin_num, &regmap, &reg, &bit);
+	if (ret)
+		return ret;
+
+	/* enable the write to the equivalent lower bits */
+	data = BIT(bit + 16) | (enable << bit);
+	rmask = BIT(bit + 16) | BIT(bit);
+
+	return regmap_update_bits(regmap, reg, rmask, data);
+}
+EXPORT_SYMBOL_GPL(rockchip_set_ie);
+
 #define PX30_SLEW_RATE_PMU_OFFSET		0x30
 #define PX30_SLEW_RATE_GRF_OFFSET		0x90
 #define PX30_SLEW_RATE_PINS_PER_PMU_REG		16
@@ -3660,6 +3764,10 @@ static int rockchip_pinconf_set(struct pinctrl_dev *pctldev, unsigned int pin,
 			rc = gpio->direction_input(gpio, pin - bank->pin_base);
 			if (rc)
 				return rc;
+
+			rc = rockchip_set_ie(bank, pin - bank->pin_base, 1);
+			if (rc)
+				return rc;
 			break;
 		case PIN_CONFIG_DRIVE_STRENGTH:
 			/* rk3288 is the first with per-pin drive-strength */
@@ -3769,6 +3877,16 @@ static int rockchip_pinconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
 			return -ENOTSUPP;
 
 		rc = rockchip_get_slew_rate(bank, pin - bank->pin_base);
+		if (rc < 0)
+			return rc;
+
+		arg = rc;
+		break;
+	case PIN_CONFIG_INPUT_ENABLE:
+		if (!info->ctrl->ie_calc_reg)
+			return -ENOTSUPP;
+
+		rc = rockchip_get_ie(bank, pin - bank->pin_base);
 		if (rc < 0)
 			return rc;
 
@@ -4407,6 +4525,7 @@ static struct rockchip_pin_ctrl rv1106_pin_ctrl __maybe_unused = {
 	.pull_calc_reg		= rv1106_calc_pull_reg_and_bit,
 	.drv_calc_reg		= rv1106_calc_drv_reg_and_bit,
 	.schmitt_calc_reg	= rv1106_calc_schmitt_reg_and_bit,
+	.ie_calc_reg		= rv1106_calc_ie_reg_and_bit,
 };
 
 static struct rockchip_pin_bank rv1108_pin_banks[] = {

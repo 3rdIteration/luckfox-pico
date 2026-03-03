@@ -162,6 +162,9 @@ static int rockchip_gpio_set_direction(struct gpio_chip *chip,
 	rockchip_gpio_writel_bit(bank, offset, data, bank->gpio_regs->port_ddr);
 	raw_spin_unlock_irqrestore(&bank->slock, flags);
 
+	if (input)
+		rockchip_set_ie(bank, offset, 1);
+
 	return 0;
 }
 

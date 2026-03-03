@@ -400,10 +400,10 @@
 
 	gpio3-d-gpio {
 		gpio3_d2_default: gpio3-d2-default {
-			rockchip,pins = <3 RK_PD2 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <3 RK_PD2 RK_FUNC_GPIO &pcfg_pull_none_ie>;
 		};
 		gpio3_d3_default: gpio3-d3-default {
-			rockchip,pins = <3 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <3 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none_ie>;
 		};
 	};
 

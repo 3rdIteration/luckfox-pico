@@ -622,10 +622,14 @@ The `rockchip_gpio_set_config()` function now routes bias config requests to
 by `gpio-omap.c` in the mainline kernel:
 
 ```c
+switch (param) {
 case PIN_CONFIG_BIAS_DISABLE:
 case PIN_CONFIG_BIAS_PULL_UP:
 case PIN_CONFIG_BIAS_PULL_DOWN:
     return gpiochip_generic_config(gc, offset, config);
+case PIN_CONFIG_INPUT_DEBOUNCE:
+    ...
+}
 ```
 
 ### What This Means

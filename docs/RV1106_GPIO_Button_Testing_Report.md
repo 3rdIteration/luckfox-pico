@@ -528,3 +528,63 @@ python3 test_suite/test_buttons.py
 The system image buildroot config should include:
 - `python-periphery` — Python GPIO library used by test scripts
 - `libgpiod-tools` — Provides `gpioget` and `gpioinfo` CLI tools (currently missing)
+
+---
+
+## Multi-Variant Button Pin Mappings
+
+All three LuckFox SeedSigner board variants now have `pcfg_pull_up_ie` DT entries for their
+respective button GPIO pins. The pin assignments match the `io_config.json` from the
+[seedsigner luckfox-staging-portability branch](https://github.com/3rdIteration/seedsigner/tree/luckfox-staging-portability).
+
+### Luckfox Pico Pi (FOX_PI) — `rv1106-luckfox-pico-pi-ipc.dtsi`
+
+| Button    | GPIO       | gpiochip | line |
+|-----------|------------|----------|------|
+| KEY_RIGHT | GPIO0_A0   | 0        | 0    |
+| KEY_DOWN  | GPIO0_A1   | 0        | 1    |
+| KEY_PRESS | GPIO1_C4   | 1        | 20   |
+| KEY3      | GPIO1_C7   | 1        | 23   |
+| KEY_UP    | GPIO3_D1   | 3        | 25   |
+| KEY_LEFT  | GPIO3_D2   | 3        | 26   |
+| KEY2      | GPIO3_D3   | 3        | 27   |
+| KEY1      | GPIO4_C1   | 4        | 17   |
+
+### Luckfox Pico Pro Max (FOX_40) — `rv1106-luckfox-pico-pro-max-ipc.dtsi`
+
+| Button    | GPIO       | gpiochip | line |
+|-----------|------------|----------|------|
+| KEY_RIGHT | GPIO1_C6   | 1        | 22   |
+| KEY_DOWN  | GPIO1_C5   | 1        | 21   |
+| KEY_PRESS | GPIO1_C4   | 1        | 20   |
+| KEY3      | GPIO1_B2   | 1        | 10   |
+| KEY_UP    | GPIO1_D2   | 1        | 26   |
+| KEY_LEFT  | GPIO1_D3   | 1        | 27   |
+| KEY2      | GPIO1_B3   | 1        | 11   |
+| KEY1      | GPIO1_C7   | 1        | 23   |
+
+### Luckfox Pico Mini (FOX_22) — `rv1103-luckfox-pico-ipc.dtsi`
+
+| Button    | GPIO       | gpiochip | line |
+|-----------|------------|----------|------|
+| KEY_RIGHT | GPIO1_C6   | 1        | 22   |
+| KEY_DOWN  | GPIO1_D3   | 1        | 27   |
+| KEY_PRESS | GPIO1_D2   | 1        | 26   |
+| KEY3      | GPIO1_C5   | 1        | 21   |
+| KEY_UP    | GPIO1_D1   | 1        | 25   |
+| KEY_LEFT  | GPIO1_D0   | 1        | 24   |
+| KEY2      | GPIO0_A4   | 0        | 4    |
+| KEY1      | GPIO1_C7   | 1        | 23   |
+
+### Test script variant support
+
+`test_suite/test_buttons.py` now auto-detects the board variant from `/proc/device-tree/model`
+and uses the correct pin map. You can also force a variant with `--variant FOX_PI|FOX_40|FOX_22`.
+
+### DT notes
+
+- All button pins use `pcfg_pull_up_ie` (bias-pull-up + input-enable) via pinctrl hog
+- All PWM nodes in the base SoC DTS are `status = "disabled"` with `pinctrl-names = "active"`,
+  so their mux assignments do not conflict with button GPIO pins at boot
+- The DHT11 device node (present on Pro Max and Mini) uses GPIO1_C7 with `pcfg_pull_none`;
+  since the DHT11 driver is not built for SeedSigner, the hog pull-up takes precedence

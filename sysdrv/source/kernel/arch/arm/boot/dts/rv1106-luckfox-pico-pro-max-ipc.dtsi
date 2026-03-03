@@ -356,6 +356,45 @@
 };
 
 &pinctrl {
+	pinctrl-names = "default";
+	pinctrl-0 = <&gpio1_b2_default &gpio1_b3_default
+		     &gpio1_c4_default &gpio1_c5_default
+		     &gpio1_c6_default &gpio1_c7_default
+		     &gpio1_d2_default &gpio1_d3_default>;
+
+	gpio1-b-gpio {
+		gpio1_b2_default: gpio1-b2-default {
+			rockchip,pins = <1 RK_PB2 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+		};
+		gpio1_b3_default: gpio1-b3-default {
+			rockchip,pins = <1 RK_PB3 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+		};
+	};
+
+	gpio1-c-gpio {
+		gpio1_c4_default: gpio1-c4-default {
+			rockchip,pins = <1 RK_PC4 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+		};
+		gpio1_c5_default: gpio1-c5-default {
+			rockchip,pins = <1 RK_PC5 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+		};
+		gpio1_c6_default: gpio1-c6-default {
+			rockchip,pins = <1 RK_PC6 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+		};
+		gpio1_c7_default: gpio1-c7-default {
+			rockchip,pins = <1 RK_PC7 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+		};
+	};
+
+	gpio1-d-gpio {
+		gpio1_d2_default: gpio1-d2-default {
+			rockchip,pins = <1 RK_PD2 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+		};
+		gpio1_d3_default: gpio1-d3-default {
+			rockchip,pins = <1 RK_PD3 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+		};
+	};
+
 	spi0 {
 		spi0m0_clk: spi0m0-clk {
 			rockchip,pins = <1 RK_PC1 4 &pcfg_pull_none>;

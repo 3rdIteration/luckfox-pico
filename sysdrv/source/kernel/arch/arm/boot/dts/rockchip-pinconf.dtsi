@@ -333,6 +333,12 @@
 	};
 
 	/omit-if-no-ref/
+	pcfg_pull_up_ie: pcfg-pull-up-ie {
+		bias-pull-up;
+		input-enable;
+	};
+
+	/omit-if-no-ref/
 	pcfg_pull_none_drv_level_0_smt: pcfg-pull-none-drv-level-0-smt {
 		bias-disable;
 		drive-strength = <0>;

@@ -396,7 +396,28 @@
 
 &pinctrl {
 	pinctrl-names = "default";
-	pinctrl-0 = <&gpio3_d1_default &gpio3_d2_default &gpio3_d3_default>;
+	pinctrl-0 = <&gpio0_a0_default &gpio0_a1_default
+		     &gpio1_c4_default &gpio1_c7_default
+		     &gpio3_d1_default &gpio3_d2_default &gpio3_d3_default
+		     &gpio4_c1_default>;
+
+	gpio0-a-gpio {
+		gpio0_a0_default: gpio0-a0-default {
+			rockchip,pins = <0 RK_PA0 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+		};
+		gpio0_a1_default: gpio0-a1-default {
+			rockchip,pins = <0 RK_PA1 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+		};
+	};
+
+	gpio1-c-gpio {
+		gpio1_c4_default: gpio1-c4-default {
+			rockchip,pins = <1 RK_PC4 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+		};
+		gpio1_c7_default: gpio1-c7-default {
+			rockchip,pins = <1 RK_PC7 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+		};
+	};
 
 	gpio3-d-gpio {
 		gpio3_d1_default: gpio3-d1-default {
@@ -407,6 +428,12 @@
 		};
 		gpio3_d3_default: gpio3-d3-default {
 			rockchip,pins = <3 RK_PD3 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+		};
+	};
+
+	gpio4-c-gpio {
+		gpio4_c1_default: gpio4-c1-default {
+			rockchip,pins = <4 RK_PC1 RK_FUNC_GPIO &pcfg_pull_up_ie>;
 		};
 	};
 

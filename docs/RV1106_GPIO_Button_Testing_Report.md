@@ -6,7 +6,7 @@ This report documents hands-on hardware testing of the GPIO button pin fixes for
 
 - **Kernel PR:** https://github.com/3rdIteration/luckfox-pico/pull/17
 
-This is the only change applied — no userspace /dev/mem workarounds from the system image PR (#39) were present. The kernel PR adds Input Enable (IE) register support to the pinctrl-rockchip driver for the RV1106 SoC, removes conflicting DT pinctrl entries (i2c3m2_xfer, pwm1m2_pins), and adds `pcfg_pull_none_ie` DT entries for GPIO3_D2/D3.
+This is the only change applied — no userspace /dev/mem workarounds from the system image PR (#39) were present. The kernel PR adds Input Enable (IE) register support to the pinctrl-rockchip driver for the RV1106 SoC, removes conflicting DT pinctrl entries (i2c3m2_xfer, pwm1m2_pins), and adds `pcfg_pull_up_ie` DT entries for all 8 SeedSigner button GPIO pins.
 
 The test scripts (`test_kernel_gpio.py`, `test_buttons.py`) were pushed to the device via ADB for initial testing. `test_buttons.py` is now included in the repository under `test_suite/`.
 
@@ -27,7 +27,7 @@ All 8 SeedSigner button pins were tested:
 
 ## Hardware Context: Level Shifter Circuit
 
-**Critical finding from schematic review:** The GPIO3 D-group pins (KEY_UP, KEY_LEFT, KEY2) do NOT have simple pull-up resistors. They use **NDC7002N dual N-channel MOSFET bidirectional level shifters** between the 1.8V GPIO domain and the 3.3V button domain:
+**Critical finding from schematic review:** The button GPIO pins use **NDC7002N dual N-channel MOSFET bidirectional level shifters** between the 1.8V GPIO domain and the 3.3V button domain:
 
 ```
 VCC_1V8 (GPIO side)        VCC_3V3 (Button side)
@@ -320,10 +320,10 @@ This simplifies the hardware design — the DT fix with `pcfg_pull_up_ie` (`bias
 - **Cause:** `rv1106_calc_ie_reg_and_bit()` offsets for bank 0 (PMU domain, 0x3C) and bank 4 (0x30080) may be incorrect, or IE is set at an address different from what the test reads
 - **Fix:** Verify IE register addresses for GPIO0 (PMU) and GPIO4 against the RV1106 TRM
 
-### Issue 4: Pull configuration missing for non-DT pins
-- **Severity:** Medium — pins work due to external pull-ups but have incorrect internal pull state
-- **Cause:** Only GPIO3_D2/D3 have DT pinctrl entries. The remaining 6 pins rely on reset defaults
-- **Fix:** Add DT pinctrl entries for all 8 button pins with `bias-pull-up` + `input-enable`
+### Issue 4: Pull configuration missing for non-DT pins ✅ Fixed
+- **Severity:** Critical — GPIO0/GPIO1 buttons stuck LOW without pull-up
+- **Cause:** Only GPIO3_D1/D2/D3 had DT pinctrl entries. GPIO0 A0/A1 and GPIO1 C4/C7 retained boot defaults (pull-down), causing buttons to be permanently stuck LOW
+- **Fix:** Added `pcfg_pull_up_ie` DT entries for all 8 button pins (GPIO0 A0/A1, GPIO1 C4/C7, GPIO3 D1/D2/D3, GPIO4 C1)
 
 ### Issue 5: pi_gpio_debug.py crashes with Bus error on /dev/mem writes
 - **Severity:** Diagnostic tool unusable for write testing
@@ -433,7 +433,7 @@ io -4 0xFF56000C    # GPIO4 — expect bit1 = 0
 
 ## Required Kernel DT Changes
 
-### 1. Add new pinconf in `rockchip-pinconf.dtsi`
+### 1. Add new pinconf in `rockchip-pinconf.dtsi` ✅ Done
 
 ```dts
 /omit-if-no-ref/
@@ -443,14 +443,35 @@ pcfg_pull_up_ie: pcfg-pull-up-ie {
 };
 ```
 
-### 2. Update `rv1106-luckfox-pico-pi-ipc.dtsi`
+### 2. Update `rv1106-luckfox-pico-pi-ipc.dtsi` ✅ Done
 
-Replace the current GPIO3 D2/D3 entries and add D1:
+All 8 button pins now have explicit `pcfg_pull_up_ie` DT entries:
 
 ```dts
 &pinctrl {
     pinctrl-names = "default";
-    pinctrl-0 = <&gpio3_d1_default &gpio3_d2_default &gpio3_d3_default>;
+    pinctrl-0 = <&gpio0_a0_default &gpio0_a1_default
+                 &gpio1_c4_default &gpio1_c7_default
+                 &gpio3_d1_default &gpio3_d2_default &gpio3_d3_default
+                 &gpio4_c1_default>;
+
+    gpio0-a-gpio {
+        gpio0_a0_default: gpio0-a0-default {
+            rockchip,pins = <0 RK_PA0 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+        };
+        gpio0_a1_default: gpio0-a1-default {
+            rockchip,pins = <0 RK_PA1 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+        };
+    };
+
+    gpio1-c-gpio {
+        gpio1_c4_default: gpio1-c4-default {
+            rockchip,pins = <1 RK_PC4 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+        };
+        gpio1_c7_default: gpio1-c7-default {
+            rockchip,pins = <1 RK_PC7 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+        };
+    };
 
     gpio3-d-gpio {
         gpio3_d1_default: gpio3-d1-default {
@@ -463,27 +484,18 @@ Replace the current GPIO3 D2/D3 entries and add D1:
             rockchip,pins = <3 RK_PD3 RK_FUNC_GPIO &pcfg_pull_up_ie>;
         };
     };
+
+    gpio4-c-gpio {
+        gpio4_c1_default: gpio4-c1-default {
+            rockchip,pins = <4 RK_PC1 RK_FUNC_GPIO &pcfg_pull_up_ie>;
+        };
+    };
 };
 ```
 
-### 3. Optional: Add DT entries for remaining 5 button pins
+### 3. GPIO4 high-drive pad note
 
-For full correctness, all 8 buttons should have explicit DT configuration with `pcfg_pull_up_ie` so the kernel configures pull-up + IE at boot without relying on reset defaults or /dev/mem workarounds.
-
-### 4. Verify GPIO0/GPIO4 IE register offsets
-
-Check RV1106 TRM for actual IE register addresses:
-- GPIO0: PMU domain, current offset `0x3C` — verify against PMU IOC register map
-- GPIO4: Current offset `0x30080` — verify against GPIO4 IOC register map
-
-The `io` tool can be used to verify these on-device:
-```bash
-# After opening a GPIO0 pin via periphery, check if IE is at 0xFF38803C:
-io -4 0xFF38803C    # GPIO0 IE — does bit 0 (A0) or bit 1 (A1) show 1?
-
-# After opening a GPIO4 pin via periphery, check if IE is at 0xFF568088:
-io -4 0xFF568088    # GPIO4 IE — does bit 1 (C1) show 1?
-```
+GPIO4 uses high-drive pads with different pull encoding (3=pull-up instead of 1). The pinctrl-rockchip driver's `rv1106_calc_pull_reg_and_bit()` must handle this correctly when `bias-pull-up` is specified for bank 4. The verified working register value is 0x0000130C at 0xFF5680C0 (bits[14:13]=11 for pull-up).
 
 ---
 

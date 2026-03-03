@@ -1,27 +1,41 @@
-name: PR Build Luckfox Pico
+name: Manual Build Luckfox Pico
 
 on:
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      hardware_type:
+        description: 'Hardware Type'
+        required: true
+        type: choice
+        options:
+          - RV1103_Luckfox_Pico
+          - RV1103_Luckfox_Pico_Mini
+          - RV1103_Luckfox_Pico_Plus
+          - RV1103_Luckfox_Pico_WebBee
+          - RV1106_Luckfox_Pico_Pro_Max
+          - RV1106_Luckfox_Pico_Ultra
+          - RV1106_Luckfox_Pico_Ultra_W
+          - RV1106_Luckfox_Pico_Pi
+          - RV1106_Luckfox_Pico_Pi_W
+          - RV1106_Luckfox_Pico_86Panel
+          - RV1106_Luckfox_Pico_86Panel_W
+          - RV1106_Luckfox_Pico_Zero
+        default: 'RV1103_Luckfox_Pico'
+      boot_medium:
+        description: 'Boot Medium'
+        required: true
+        type: choice
+        options:
+          - SD_CARD
+          - SPI_NAND
+          - EMMC
+        default: 'SD_CARD'
 
 jobs:
   build:
     runs-on: ubuntu-22.04
     permissions:
       contents: read
-    strategy:
-      matrix:
-        include:
-          - hardware: RV1103_Luckfox_Pico_Mini
-            boot_medium: SPI_NAND
-            label: pico-nand
-          - hardware: RV1103_Luckfox_Pico_Plus
-            boot_medium: SPI_NAND
-            label: plus-nand
-          - hardware: RV1106_Luckfox_Pico_Pi
-            boot_medium: EMMC
-            label: pi-emmc
 
     steps:
       - name: Checkout code
@@ -34,9 +48,9 @@ jobs:
 
       - name: Configure build
         run: |
-          HARDWARE="${{ matrix.hardware }}"
-          BOOT_MEDIUM="${{ matrix.boot_medium }}"
-          echo "PR build - ${{ matrix.label }}: $HARDWARE with $BOOT_MEDIUM"
+          HARDWARE="${{ inputs.hardware_type }}"
+          BOOT_MEDIUM="${{ inputs.boot_medium }}"
+          echo "Manual build - using: $HARDWARE with $BOOT_MEDIUM"
 
           BOARD_CONFIG="project/cfg/BoardConfig_IPC/BoardConfig-${BOOT_MEDIUM}-Buildroot-${HARDWARE}-IPC.mk"
 
@@ -58,7 +72,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: luckfox-pico-${{ matrix.label }}
+          name: luckfox-pico-${{ format('{0}-{1}', inputs.hardware_type, inputs.boot_medium) }}
           path: |
             output/image/*
           retention-days: 7

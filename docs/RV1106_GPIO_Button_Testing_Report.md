@@ -8,7 +8,7 @@ This report documents hands-on hardware testing of the GPIO button pin fixes for
 
 This is the only change applied — no userspace /dev/mem workarounds from the system image PR (#39) were present. The kernel PR adds Input Enable (IE) register support to the pinctrl-rockchip driver for the RV1106 SoC, removes conflicting DT pinctrl entries (i2c3m2_xfer, pwm1m2_pins), and adds `pcfg_pull_none_ie` DT entries for GPIO3_D2/D3.
 
-The test scripts (`test_kernel_gpio.py`, `test_buttons.py`) were pushed to the device via ADB for testing and are not part of either PR.
+The test scripts (`test_kernel_gpio.py`, `test_buttons.py`) were pushed to the device via ADB for initial testing. `test_buttons.py` is now included in the repository under `test_suite/`.
 
 All 8 SeedSigner button pins were tested:
 
@@ -413,7 +413,7 @@ io -4 0xFF568010    # GPIO4 C1
 # Pull (verify pull-up enabled)
 io -4 0xFF388038    # GPIO0 — expect bits[3:0] = 0x5
 io -4 0xFF5381C8    # GPIO1 — expect bits[15:8] = 0x41
-io -4 0xFF5581EC    # GPIO3 — expect bits[7:2] = 0x15 (=0x54)
+io -4 0xFF5581EC    # GPIO3 — expect bits[7:2] = 010101 binary (pull-up for D1/D2/D3)
 io -4 0xFF5680C0    # GPIO4 — expect bits[14:13] = 0b11, bit3 = 1
 
 # Input buffer enable (IE)

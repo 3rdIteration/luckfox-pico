@@ -579,7 +579,19 @@ respective button GPIO pins. The pin assignments match the `io_config.json` from
 ### Test script variant support
 
 `test_suite/test_buttons.py` now auto-detects the board variant from `/proc/device-tree/model`
-and uses the correct pin map. You can also force a variant with `--variant FOX_PI|FOX_40|FOX_22`.
+and uses the correct pin map. You can also force a variant with `--board pi|max|mini`.
+
+### Test Results Summary
+
+| Board          | Result                          | Fix Needed                     |
+|----------------|----------------------------------|--------------------------------|
+| Pico Pi        | 8/8 buttons working             | None                           |
+| Pico Mini      | 8/8 buttons working             | None                           |
+| Pico Pro Max   | 8/8 buttons working (with fix)  | GPIO1_C4 needed bias-pull-up   |
+
+The Pro Max GPIO1_C4 (KEY_PRESS) was stuck LOW before the `pcfg_pull_up_ie` DT entry
+was added. All 8 button pins on all three boards now have DT pull-up+input-enable hog
+entries and all buttons confirm press+release correctly.
 
 ### DT notes
 

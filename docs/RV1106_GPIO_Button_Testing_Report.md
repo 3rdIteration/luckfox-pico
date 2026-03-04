@@ -587,11 +587,32 @@ and uses the correct pin map. You can also force a variant with `--board pi|max|
 |----------------|----------------------------------|--------------------------------|
 | Pico Pi        | 8/8 buttons working             | None                           |
 | Pico Mini      | 8/8 buttons working             | None                           |
-| Pico Pro Max   | 8/8 buttons working (with fix)  | GPIO1_C4 needed bias-pull-up   |
+| Pico Pro Max   | 7/8 working, KEY_PRESS stuck LOW | GPIO1_C4 needs bias-pull-up + deferred IE fix |
 
-The Pro Max GPIO1_C4 (KEY_PRESS) was stuck LOW before the `pcfg_pull_up_ie` DT entry
-was added. All 8 button pins on all three boards now have DT pull-up+input-enable hog
-entries and all buttons confirm press+release correctly.
+The Pro Max GPIO1_C4 (KEY_PRESS) was stuck LOW. Setting pull-up via `io` tool fixed it:
+
+```
+io -4 0xFF5381C8 0x03000100    # GPIO1 C4 bits[9:8] = 01 (pull-up)
+```
+
+Register dump on Max before fix:
+- GPIO1 Pull (0xFF5381C8) = 0x0000AAAA — ALL C-group pins pull-DOWN
+- C4 bits[9:8] = 10 = pull-down
+
+**Root cause:** Two issues combined:
+
+1. GPIO1_C4 needed a `pcfg_pull_up_ie` DT hog entry to set bias-pull-up and input-enable
+   at boot — this DT entry has been added to `rv1106-luckfox-pico-pro-max-ipc.dtsi`.
+
+2. The `gpio-rockchip.c` deferred pin handler only handled `PIN_CONFIG_OUTPUT` but dropped
+   `PIN_CONFIG_INPUT_ENABLE` with an "unknown deferred config param" warning. When the
+   pinctrl hog applies before the GPIO bank probes (which is the normal boot sequence),
+   `input-enable` is deferred. Without proper handling, the Input Enable (IE) register
+   was never set, causing the pin to always read LOW regardless of pull-up state.
+
+**Fix applied:** Added `PIN_CONFIG_INPUT_ENABLE` case to the deferred pin handler in
+`gpio-rockchip.c`. This calls `rockchip_gpio_direction_input()` which sets both the
+direction register and the IE register when the GPIO bank probes.
 
 ### DT notes
 

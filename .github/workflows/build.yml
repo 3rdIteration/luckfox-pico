@@ -35,7 +35,8 @@ on:
       - main
 
 jobs:
-  build:
+  manual-build:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-22.04
     permissions:
       contents: read
@@ -51,19 +52,10 @@ jobs:
 
       - name: Configure build
         run: |
-          # Map hardware and boot medium to board config
-          # For PR builds, use default values; for manual builds, use inputs
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            HARDWARE="RV1103_Luckfox_Pico_Mini"
-            BOOT_MEDIUM="SPI_NAND"
-            echo "PR build detected - using default: $HARDWARE with $BOOT_MEDIUM"
-          else
-            HARDWARE="${{ inputs.hardware_type }}"
-            BOOT_MEDIUM="${{ inputs.boot_medium }}"
-            echo "Manual build - using: $HARDWARE with $BOOT_MEDIUM"
-          fi
+          HARDWARE="${{ inputs.hardware_type }}"
+          BOOT_MEDIUM="${{ inputs.boot_medium }}"
+          echo "Manual build - using: $HARDWARE with $BOOT_MEDIUM"
 
-          # Determine the board config file
           BOARD_CONFIG="project/cfg/BoardConfig_IPC/BoardConfig-${BOOT_MEDIUM}-Buildroot-${HARDWARE}-IPC.mk"
 
           if [ ! -f "$BOARD_CONFIG" ]; then
@@ -74,8 +66,6 @@ jobs:
           fi
 
           echo "Using board config: $BOARD_CONFIG"
-
-          # Create symbolic link to board config at root level
           ln -rfs "$BOARD_CONFIG" .BoardConfig.mk
 
       - name: Build
@@ -86,7 +76,65 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: luckfox-pico-${{ github.event_name == 'pull_request' && 'RV1103_Luckfox_Pico_Mini-SPI_NAND' || format('{0}-{1}', inputs.hardware_type, inputs.boot_medium) }}
+          name: luckfox-pico-${{ format('{0}-{1}', inputs.hardware_type, inputs.boot_medium) }}
+          path: |
+            output/image/*
+          retention-days: 7
+
+  pr-build:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        include:
+          - hardware: RV1103_Luckfox_Pico_Mini
+            boot_medium: SPI_NAND
+            label: pico-nand
+          - hardware: RV1103_Luckfox_Pico_Plus
+            boot_medium: SPI_NAND
+            label: plus-nand
+          - hardware: RV1106_Luckfox_Pico_Pi
+            boot_medium: EMMC
+            label: pi-emmc
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git ssh make gcc gcc-multilib g++-multilib module-assistant expect g++ gawk texinfo libssl-dev bison flex fakeroot cmake unzip gperf autoconf device-tree-compiler libncurses5-dev pkg-config bc python-is-python3 passwd openssl openssh-server openssh-client vim file cpio rsync
+
+      - name: Configure build
+        run: |
+          HARDWARE="${{ matrix.hardware }}"
+          BOOT_MEDIUM="${{ matrix.boot_medium }}"
+          echo "PR build - ${{ matrix.label }}: $HARDWARE with $BOOT_MEDIUM"
+
+          BOARD_CONFIG="project/cfg/BoardConfig_IPC/BoardConfig-${BOOT_MEDIUM}-Buildroot-${HARDWARE}-IPC.mk"
+
+          if [ ! -f "$BOARD_CONFIG" ]; then
+            echo "Error: Board config file not found: $BOARD_CONFIG"
+            echo "Available configs:"
+            ls -1 project/cfg/BoardConfig_IPC/
+            exit 1
+          fi
+
+          echo "Using board config: $BOARD_CONFIG"
+          ln -rfs "$BOARD_CONFIG" .BoardConfig.mk
+
+      - name: Build
+        run: |
+          ./build.sh all
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: luckfox-pico-${{ matrix.label }}
           path: |
             output/image/*
           retention-days: 7

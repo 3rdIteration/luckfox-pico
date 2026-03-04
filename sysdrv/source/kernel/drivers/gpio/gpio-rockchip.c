@@ -157,10 +157,17 @@ static int rockchip_gpio_set_direction(struct gpio_chip *chip,
 	struct rockchip_pin_bank *bank = gpiochip_get_data(chip);
 	unsigned long flags;
 	u32 data = input ? 0 : 1;
+	int ret;
 
 	raw_spin_lock_irqsave(&bank->slock, flags);
 	rockchip_gpio_writel_bit(bank, offset, data, bank->gpio_regs->port_ddr);
 	raw_spin_unlock_irqrestore(&bank->slock, flags);
+
+	if (input) {
+		ret = rockchip_set_ie(bank, offset, 1);
+		if (ret)
+			return ret;
+	}
 
 	return 0;
 }
@@ -277,6 +284,10 @@ static int rockchip_gpio_set_config(struct gpio_chip *gc, unsigned int offset,
 	unsigned int debounce = pinconf_to_config_argument(config);
 
 	switch (param) {
+	case PIN_CONFIG_BIAS_DISABLE:
+	case PIN_CONFIG_BIAS_PULL_UP:
+	case PIN_CONFIG_BIAS_PULL_DOWN:
+		return gpiochip_generic_config(gc, offset, config);
 	case PIN_CONFIG_INPUT_DEBOUNCE:
 		rockchip_gpio_set_debounce(gc, offset, debounce);
 		/*
@@ -791,6 +802,11 @@ static int rockchip_gpio_probe(struct platform_device *pdev)
 			if (ret)
 				dev_warn(dev, "setting output pin %u to %u failed\n", cfg->pin,
 					 cfg->arg);
+			break;
+		case PIN_CONFIG_INPUT_ENABLE:
+			ret = rockchip_gpio_direction_input(&bank->gpio_chip, cfg->pin);
+			if (ret)
+				dev_warn(dev, "setting input pin %u failed\n", cfg->pin);
 			break;
 		default:
 			dev_warn(dev, "unknown deferred config param %d\n", cfg->param);

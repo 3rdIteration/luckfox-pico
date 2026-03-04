@@ -60,7 +60,7 @@ POLL_INTERVAL = 1.0 / POLL_HZ
 def detect_board():
     try:
         with open('/proc/device-tree/model', 'r') as f:
-            model = f.read().strip().lower()
+            model = f.read().strip().rstrip('\x00').lower()
     except (FileNotFoundError, PermissionError):
         return None
     if 'pico pro max' in model or 'pico max' in model:

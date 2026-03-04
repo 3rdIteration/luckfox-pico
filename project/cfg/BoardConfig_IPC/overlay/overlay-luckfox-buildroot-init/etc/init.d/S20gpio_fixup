@@ -21,9 +21,11 @@ start)
 	fi
 
 	case "$model" in
-	*Pro\ Max*|*Pico\ Max*)
+	*Pico\ Pro\ Max*|*Pico\ Max*)
 		# GPIO1_C4 (KEY_PRESS) pull-up
-		io -4 0xFF5381C8 0x03000100
+		if command -v io > /dev/null 2>&1; then
+			io -4 0xFF5381C8 0x03000100
+		fi
 		;;
 	esac
 	;;

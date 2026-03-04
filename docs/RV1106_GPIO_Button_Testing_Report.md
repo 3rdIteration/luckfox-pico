@@ -587,7 +587,7 @@ and uses the correct pin map. You can also force a variant with `--board pi|max|
 |----------------|----------------------------------|--------------------------------|
 | Pico Pi        | 8/8 buttons working             | None                           |
 | Pico Mini      | 8/8 buttons working             | None                           |
-| Pico Pro Max   | 7/8 working, KEY_PRESS stuck LOW | GPIO1_C4 needs bias-pull-up + deferred IE fix |
+| Pico Pro Max   | 8/8 working (with boot-time fixup) | GPIO1_C4 pull-up set via S20gpio_fixup init script |
 
 The Pro Max GPIO1_C4 (KEY_PRESS) was stuck LOW. Setting pull-up via `io` tool fixed it:
 
@@ -599,7 +599,7 @@ Register dump on Max before fix:
 - GPIO1 Pull (0xFF5381C8) = 0x0000AAAA — ALL C-group pins pull-DOWN
 - C4 bits[9:8] = 10 = pull-down
 
-**Root cause:** Two issues combined:
+**Root cause:** Three issues combined:
 
 1. GPIO1_C4 needed a `pcfg_pull_up_ie` DT hog entry to set bias-pull-up and input-enable
    at boot — this DT entry has been added to `rv1106-luckfox-pico-pro-max-ipc.dtsi`.
@@ -610,9 +610,19 @@ Register dump on Max before fix:
    `input-enable` is deferred. Without proper handling, the Input Enable (IE) register
    was never set, causing the pin to always read LOW regardless of pull-up state.
 
-**Fix applied:** Added `PIN_CONFIG_INPUT_ENABLE` case to the deferred pin handler in
-`gpio-rockchip.c`. This calls `rockchip_gpio_direction_input()` which sets both the
-direction register and the IE register when the GPIO bank probes.
+3. Despite the DT hog and deferred IE fixes, GPIO1_C4 pull-up still did not take effect
+   on the Pro Max at boot. UART4 M1 (func 4) and PWM8 M1 (func 3) both reference this
+   pin in their `pinctrl-0` entries; even with both peripherals disabled, a timing issue
+   between the pinctrl hog, GPIO bank probe, and IOC register initialization leaves the
+   pull register at its reset default (pull-down). The runtime workaround
+   `io -4 0xFF5381C8 0x03000100` reliably fixes it.
+
+**Fixes applied:**
+- Added `PIN_CONFIG_INPUT_ENABLE` case to the deferred pin handler in `gpio-rockchip.c`.
+  This calls `rockchip_gpio_direction_input()` which sets both the direction register
+  and the IE register when the GPIO bank probes.
+- Added `S20gpio_fixup` init script in the buildroot-init overlay that detects the Pro Max
+  board at boot and writes the GPIO1_C4 pull-up register via the busybox `io` tool.
 
 ### DT notes
 

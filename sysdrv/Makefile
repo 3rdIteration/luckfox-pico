@@ -313,6 +313,7 @@ SYSDRV_RAMDISK_DIR ?= $(SYSDRV_DIR_OUT_BOARD)
 HCITOOL_TOOL_PATH :=$(SYSDRV_DIR)/tools/board/buildroot/hcitool_patch
 MPV_PATCH_PATH :=$(SYSDRV_DIR)/tools/board/buildroot/mpv_patch
 BUSYBOX_PATCH_PATH :=$(SYSDRV_DIR)/tools/board/buildroot/busybox_patch
+RUST_PATCH_PATH :=$(SYSDRV_DIR)/tools/board/buildroot/rust_patch
 
 export SYSDRV_DIR_OUT_PC
 export SYSDRV_DIR_OUT_BOARD
@@ -607,6 +608,8 @@ buildroot_create:
 	cp ${MPV_PATCH_PATH}/0002-change-j1.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/
 	cp ${BUSYBOX_PATCH_PATH}/0017-busybox-support-chinese-display-in-terminal.patch  $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/
 	cp ${BUSYBOX_PATCH_PATH}/0018-halt-Support-rebooting-with-arg.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/
+	cp ${RUST_PATCH_PATH}/Config.in.host $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/rustc/Config.in.host
+	cp ${RUST_PATCH_PATH}/rust-bin.mk $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/rust-bin/rust-bin.mk
 
 buildroot: prepare
 	@echo -e "$(C_GREEN) ==sysdrv== build buildroot   $(C_NORMAL)"
@@ -622,6 +625,8 @@ buildroot: prepare
 		cp ${MPV_PATCH_PATH}/0002-change-j1.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/ ;\
 		cp ${BUSYBOX_PATCH_PATH}/0017-busybox-support-chinese-display-in-terminal.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
 		cp ${BUSYBOX_PATCH_PATH}/0018-halt-Support-rebooting-with-arg.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
+		cp ${RUST_PATCH_PATH}/Config.in.host $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/rustc/Config.in.host ;\
+		cp ${RUST_PATCH_PATH}/rust-bin.mk $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/rust-bin/rust-bin.mk ;\
 	);
 
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) $(BUILDROOT_DEFCONFIG) -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
